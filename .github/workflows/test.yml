@@ -1,0 +1,68 @@
+name: Test
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install pyinstaller pillow mss cryptography opencv-python-headless
+      - name: Clear cache
+        run: Get-ChildItem -Recurse -Directory -Filter __pycache__ | Remove-Item -Recurse -Force
+      - name: Run tests
+        run: python test_all.py
+
+  test-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run stub generation test
+        run: |
+          python -c "
+          from plugins import PLUGIN_REGISTRY
+          from stub_generator import generate_stub
+          stub = generate_stub(sorted(PLUGIN_REGISTRY.keys()), '127.0.0.1', 4443, 'test', 10)
+          print(f'Stub generated: {len(stub)} bytes with {len(PLUGIN_REGISTRY)} plugins')
+          compile(stub, '<test>', 'exec')
+          print('Syntax OK')
+          "
+      - name: Check imports
+        run: python -c "import server; print('server imports OK')"
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Syntax check all Python files
+        run: |
+          import os, glob, py_compile, sys
+          errors = 0
+          for root, dirs, files in os.walk('.'):
+              for f in files:
+                  if f.endswith('.py'):
+                      path = os.path.join(root, f)
+                      try:
+                          py_compile.compile(path, doraise=True)
+                      except py_compile.PyCompileError as e:
+                          print(f'ERROR: {path}: {e}')
+                          errors += 1
+          if errors:
+              print(f'{errors} files failed')
+              sys.exit(1)
+          print('All files OK')
+        shell: python {0}

