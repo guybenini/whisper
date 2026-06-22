@@ -1,0 +1,7 @@
+# Core: no dependencies required (stdlib only)
+# Optional per-plugin dependencies (install only what you need):
+  pip install pyinstaller        # Build EXEs
+  pip install mss pillow         # Screenshots (Windows)
+  pip install opencv-python      # Webcam capture
+  pip install cryptography       # Browser password decryption
+pyinstaller

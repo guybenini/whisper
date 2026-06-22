@@ -1,0 +1,9 @@
+{
+  "type": "response",
+  "os": "Windows-11-10.0.22621-SP0",
+  "hostname": "DESKTOP-LH3DPVR",
+  "user": "Cryptofy Digital",
+  "arch": "AMD64",
+  "pid": 9280,
+  "cwd": "C:\\Windows\\system32"
+}
