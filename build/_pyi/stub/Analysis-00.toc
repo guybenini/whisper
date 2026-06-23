@@ -1,5 +1,5 @@
-(['C:\\Users\\CryptofyDigital\\Documents\\GitHub\\xxrat\\build\\stub.py'],
- ['C:\\Users\\CryptofyDigital\\Documents\\GitHub\\xxrat\\build'],
+(['C:\\Users\\CryptofyDigital\\Documents\\GitHub\\whisper\\build\\stub.py'],
+ ['C:\\Users\\CryptofyDigital\\Documents\\GitHub\\whisper\\build'],
  [],
  ['C:\\Python312\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks',
   'C:\\Python312\\Lib\\site-packages\\_pyinstaller_hooks_contrib'],
@@ -17,7 +17,7 @@
    'C:\\Python312\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_inspect.py',
    'PYSOURCE'),
   ('stub',
-   'C:\\Users\\CryptofyDigital\\Documents\\GitHub\\xxrat\\build\\stub.py',
+   'C:\\Users\\CryptofyDigital\\Documents\\GitHub\\whisper\\build\\stub.py',
    'PYSOURCE')],
  [('inspect', 'C:\\Python312\\Lib\\inspect.py', 'PYMODULE'),
   ('importlib', 'C:\\Python312\\Lib\\importlib\\__init__.py', 'PYMODULE'),
@@ -80,14 +80,6 @@
   ('email.iterators', 'C:\\Python312\\Lib\\email\\iterators.py', 'PYMODULE'),
   ('email.generator', 'C:\\Python312\\Lib\\email\\generator.py', 'PYMODULE'),
   ('copy', 'C:\\Python312\\Lib\\copy.py', 'PYMODULE'),
-  ('random', 'C:\\Python312\\Lib\\random.py', 'PYMODULE'),
-  ('statistics', 'C:\\Python312\\Lib\\statistics.py', 'PYMODULE'),
-  ('decimal', 'C:\\Python312\\Lib\\decimal.py', 'PYMODULE'),
-  ('_pydecimal', 'C:\\Python312\\Lib\\_pydecimal.py', 'PYMODULE'),
-  ('contextvars', 'C:\\Python312\\Lib\\contextvars.py', 'PYMODULE'),
-  ('fractions', 'C:\\Python312\\Lib\\fractions.py', 'PYMODULE'),
-  ('numbers', 'C:\\Python312\\Lib\\numbers.py', 'PYMODULE'),
-  ('bisect', 'C:\\Python312\\Lib\\bisect.py', 'PYMODULE'),
   ('email._encoded_words',
    'C:\\Python312\\Lib\\email\\_encoded_words.py',
    'PYMODULE'),
@@ -150,14 +142,15 @@
   ('dis', 'C:\\Python312\\Lib\\dis.py', 'PYMODULE'),
   ('opcode', 'C:\\Python312\\Lib\\opcode.py', 'PYMODULE'),
   ('ast', 'C:\\Python312\\Lib\\ast.py', 'PYMODULE'),
-  ('stringprep', 'C:\\Python312\\Lib\\stringprep.py', 'PYMODULE'),
   ('_py_abc', 'C:\\Python312\\Lib\\_py_abc.py', 'PYMODULE'),
+  ('stringprep', 'C:\\Python312\\Lib\\stringprep.py', 'PYMODULE'),
   ('tracemalloc', 'C:\\Python312\\Lib\\tracemalloc.py', 'PYMODULE'),
   ('pickle', 'C:\\Python312\\Lib\\pickle.py', 'PYMODULE'),
   ('pprint', 'C:\\Python312\\Lib\\pprint.py', 'PYMODULE'),
   ('dataclasses', 'C:\\Python312\\Lib\\dataclasses.py', 'PYMODULE'),
   ('_compat_pickle', 'C:\\Python312\\Lib\\_compat_pickle.py', 'PYMODULE'),
   ('fnmatch', 'C:\\Python312\\Lib\\fnmatch.py', 'PYMODULE'),
+  ('shlex', 'C:\\Python312\\Lib\\shlex.py', 'PYMODULE'),
   ('tempfile', 'C:\\Python312\\Lib\\tempfile.py', 'PYMODULE'),
   ('sqlite3', 'C:\\Python312\\Lib\\sqlite3\\__init__.py', 'PYMODULE'),
   ('sqlite3.dump', 'C:\\Python312\\Lib\\sqlite3\\dump.py', 'PYMODULE'),
@@ -173,6 +166,15 @@
   ('gzip', 'C:\\Python312\\Lib\\gzip.py', 'PYMODULE'),
   ('ctypes', 'C:\\Python312\\Lib\\ctypes\\__init__.py', 'PYMODULE'),
   ('ctypes._endian', 'C:\\Python312\\Lib\\ctypes\\_endian.py', 'PYMODULE'),
+  ('random', 'C:\\Python312\\Lib\\random.py', 'PYMODULE'),
+  ('statistics', 'C:\\Python312\\Lib\\statistics.py', 'PYMODULE'),
+  ('decimal', 'C:\\Python312\\Lib\\decimal.py', 'PYMODULE'),
+  ('_pydecimal', 'C:\\Python312\\Lib\\_pydecimal.py', 'PYMODULE'),
+  ('contextvars', 'C:\\Python312\\Lib\\contextvars.py', 'PYMODULE'),
+  ('fractions', 'C:\\Python312\\Lib\\fractions.py', 'PYMODULE'),
+  ('numbers', 'C:\\Python312\\Lib\\numbers.py', 'PYMODULE'),
+  ('bisect', 'C:\\Python312\\Lib\\bisect.py', 'PYMODULE'),
+  ('secrets', 'C:\\Python312\\Lib\\secrets.py', 'PYMODULE'),
   ('platform', 'C:\\Python312\\Lib\\platform.py', 'PYMODULE'),
   ('subprocess', 'C:\\Python312\\Lib\\subprocess.py', 'PYMODULE'),
   ('selectors', 'C:\\Python312\\Lib\\selectors.py', 'PYMODULE'),
@@ -190,37 +192,33 @@
   ('base64', 'C:\\Python312\\Lib\\base64.py', 'PYMODULE'),
   ('socket', 'C:\\Python312\\Lib\\socket.py', 'PYMODULE')],
  [('python312.dll', 'C:\\Python312\\python312.dll', 'BINARY'),
-  ('_decimal.pyd', 'C:\\Python312\\DLLs\\_decimal.pyd', 'EXTENSION'),
   ('unicodedata.pyd', 'C:\\Python312\\DLLs\\unicodedata.pyd', 'EXTENSION'),
   ('_lzma.pyd', 'C:\\Python312\\DLLs\\_lzma.pyd', 'EXTENSION'),
   ('_bz2.pyd', 'C:\\Python312\\DLLs\\_bz2.pyd', 'EXTENSION'),
   ('_sqlite3.pyd', 'C:\\Python312\\DLLs\\_sqlite3.pyd', 'EXTENSION'),
   ('_uuid.pyd', 'C:\\Python312\\DLLs\\_uuid.pyd', 'EXTENSION'),
   ('_ctypes.pyd', 'C:\\Python312\\DLLs\\_ctypes.pyd', 'EXTENSION'),
+  ('_decimal.pyd', 'C:\\Python312\\DLLs\\_decimal.pyd', 'EXTENSION'),
   ('_wmi.pyd', 'C:\\Python312\\DLLs\\_wmi.pyd', 'EXTENSION'),
   ('select.pyd', 'C:\\Python312\\DLLs\\select.pyd', 'EXTENSION'),
   ('_hashlib.pyd', 'C:\\Python312\\DLLs\\_hashlib.pyd', 'EXTENSION'),
   ('_socket.pyd', 'C:\\Python312\\DLLs\\_socket.pyd', 'EXTENSION'),
-  ('api-ms-win-crt-math-l1-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-crt-math-l1-1-0.dll',
-   'BINARY'),
-  ('api-ms-win-crt-process-l1-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-crt-process-l1-1-0.dll',
-   'BINARY'),
-  ('VCRUNTIME140.dll', 'C:\\Python312\\VCRUNTIME140.dll', 'BINARY'),
   ('api-ms-win-crt-environment-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-crt-environment-l1-1-0.dll',
    'BINARY'),
-  ('api-ms-win-crt-conio-l1-1-0.dll',
+  ('api-ms-win-crt-string-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
-   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-crt-conio-l1-1-0.dll',
+   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-crt-string-l1-1-0.dll',
    'BINARY'),
-  ('api-ms-win-crt-time-l1-1-0.dll',
+  ('api-ms-win-crt-locale-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
-   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-crt-time-l1-1-0.dll',
+   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-crt-locale-l1-1-0.dll',
+   'BINARY'),
+  ('VCRUNTIME140.dll', 'C:\\Python312\\VCRUNTIME140.dll', 'BINARY'),
+  ('api-ms-win-crt-runtime-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-crt-runtime-l1-1-0.dll',
    'BINARY'),
   ('api-ms-win-crt-stdio-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
@@ -230,21 +228,25 @@
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-crt-filesystem-l1-1-0.dll',
    'BINARY'),
-  ('api-ms-win-crt-locale-l1-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-crt-locale-l1-1-0.dll',
-   'BINARY'),
   ('api-ms-win-crt-convert-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-crt-convert-l1-1-0.dll',
    'BINARY'),
-  ('api-ms-win-crt-string-l1-1-0.dll',
+  ('api-ms-win-crt-process-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
-   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-crt-string-l1-1-0.dll',
+   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-crt-process-l1-1-0.dll',
    'BINARY'),
-  ('api-ms-win-crt-runtime-l1-1-0.dll',
+  ('api-ms-win-crt-conio-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
-   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-crt-runtime-l1-1-0.dll',
+   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-crt-conio-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-math-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-crt-math-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-time-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-crt-time-l1-1-0.dll',
    'BINARY'),
   ('api-ms-win-crt-heap-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
@@ -262,77 +264,61 @@
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-crt-utility-l1-1-0.dll',
    'BINARY'),
-  ('api-ms-win-core-interlocked-l1-1-0.dll',
+  ('api-ms-win-core-profile-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
-   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-interlocked-l1-1-0.dll',
-   'BINARY'),
-  ('api-ms-win-core-string-l1-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-string-l1-1-0.dll',
-   'BINARY'),
-  ('api-ms-win-core-file-l1-2-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-file-l1-2-0.dll',
-   'BINARY'),
-  ('api-ms-win-core-debug-l1-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-debug-l1-1-0.dll',
-   'BINARY'),
-  ('api-ms-win-core-memory-l1-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-memory-l1-1-0.dll',
-   'BINARY'),
-  ('api-ms-win-core-sysinfo-l1-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-sysinfo-l1-1-0.dll',
-   'BINARY'),
-  ('api-ms-win-core-datetime-l1-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-datetime-l1-1-0.dll',
-   'BINARY'),
-  ('api-ms-win-core-namedpipe-l1-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-namedpipe-l1-1-0.dll',
-   'BINARY'),
-  ('api-ms-win-core-kernel32-legacy-l1-1-1.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-kernel32-legacy-l1-1-1.dll',
-   'BINARY'),
-  ('api-ms-win-core-localization-l1-2-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-localization-l1-2-0.dll',
-   'BINARY'),
-  ('api-ms-win-core-file-l2-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-file-l2-1-0.dll',
+   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-profile-l1-1-0.dll',
    'BINARY'),
   ('api-ms-win-core-util-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-util-l1-1-0.dll',
    'BINARY'),
-  ('api-ms-win-core-libraryloader-l1-1-0.dll',
+  ('api-ms-win-core-handle-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
-   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-libraryloader-l1-1-0.dll',
+   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-handle-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-rtlsupport-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-rtlsupport-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-errorhandling-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-errorhandling-l1-1-0.dll',
    'BINARY'),
   ('api-ms-win-core-console-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-console-l1-1-0.dll',
    'BINARY'),
+  ('api-ms-win-core-file-l2-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-file-l2-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-debug-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-debug-l1-1-0.dll',
+   'BINARY'),
   ('api-ms-win-core-fibers-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-fibers-l1-1-0.dll',
    'BINARY'),
-  ('api-ms-win-core-fibers-l1-1-1.dll',
+  ('api-ms-win-core-libraryloader-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
-   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-fibers-l1-1-1.dll',
+   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-libraryloader-l1-1-0.dll',
    'BINARY'),
-  ('api-ms-win-core-synch-l1-1-0.dll',
+  ('api-ms-win-core-synch-l1-2-0.dll',
    'C:\\Program Files\\Eclipse '
-   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-synch-l1-1-0.dll',
+   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-synch-l1-2-0.dll',
    'BINARY'),
-  ('api-ms-win-core-rtlsupport-l1-1-0.dll',
+  ('api-ms-win-core-file-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
-   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-rtlsupport-l1-1-0.dll',
+   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-file-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-string-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-string-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-processenvironment-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-processenvironment-l1-1-0.dll',
    'BINARY'),
   ('api-ms-win-core-sysinfo-l1-2-0.dll',
    'C:\\Program Files\\Eclipse '
@@ -342,44 +328,60 @@
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-timezone-l1-1-0.dll',
    'BINARY'),
-  ('api-ms-win-core-file-l1-1-0.dll',
+  ('api-ms-win-core-memory-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
-   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-file-l1-1-0.dll',
+   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-memory-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-synch-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-synch-l1-1-0.dll',
    'BINARY'),
   ('api-ms-win-core-processthreads-l1-1-1.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-processthreads-l1-1-1.dll',
    'BINARY'),
-  ('api-ms-win-core-handle-l1-1-0.dll',
+  ('api-ms-win-core-fibers-l1-1-1.dll',
    'C:\\Program Files\\Eclipse '
-   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-handle-l1-1-0.dll',
+   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-fibers-l1-1-1.dll',
    'BINARY'),
-  ('api-ms-win-core-errorhandling-l1-1-0.dll',
+  ('api-ms-win-core-datetime-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
-   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-errorhandling-l1-1-0.dll',
-   'BINARY'),
-  ('api-ms-win-core-synch-l1-2-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-synch-l1-2-0.dll',
-   'BINARY'),
-  ('api-ms-win-core-processthreads-l1-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-processthreads-l1-1-0.dll',
-   'BINARY'),
-  ('api-ms-win-core-profile-l1-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-profile-l1-1-0.dll',
+   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-datetime-l1-1-0.dll',
    'BINARY'),
   ('api-ms-win-core-heap-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-heap-l1-1-0.dll',
    'BINARY'),
-  ('api-ms-win-core-processenvironment-l1-1-0.dll',
+  ('api-ms-win-core-localization-l1-2-0.dll',
    'C:\\Program Files\\Eclipse '
-   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-processenvironment-l1-1-0.dll',
+   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-localization-l1-2-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-kernel32-legacy-l1-1-1.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-kernel32-legacy-l1-1-1.dll',
+   'BINARY'),
+  ('api-ms-win-core-interlocked-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-interlocked-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-processthreads-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-processthreads-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-sysinfo-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-sysinfo-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-namedpipe-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-namedpipe-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-file-l1-2-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-8.0.462.8-hotspot\\bin\\api-ms-win-core-file-l1-2-0.dll',
    'BINARY')],
  [],
  [],
  [('base_library.zip',
-   'C:\\Users\\CryptofyDigital\\Documents\\GitHub\\xxrat\\build\\_pyi\\stub\\base_library.zip',
+   'C:\\Users\\CryptofyDigital\\Documents\\GitHub\\whisper\\build\\_pyi\\stub\\base_library.zip',
    'DATA')])

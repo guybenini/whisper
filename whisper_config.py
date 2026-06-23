@@ -51,6 +51,7 @@ class WhisperConfig:
 def load_config(path: Optional[str] = None) -> WhisperConfig:
     p = path or CONFIG_FILE
     cfg = WhisperConfig()
+    had_salt = False
     if os.path.exists(p):
         try:
             with open(p, "r") as f:
@@ -58,8 +59,11 @@ def load_config(path: Optional[str] = None) -> WhisperConfig:
             for k, v in data.items():
                 if hasattr(cfg, k):
                     setattr(cfg, k, v)
+            had_salt = "c2_salt_hex" in data
         except Exception:
             pass
+    if not had_salt and not os.environ.get("WHISPER_SALT_HEX"):
+        save_config(cfg, p)
     return cfg
 
 
@@ -67,7 +71,6 @@ def save_config(cfg: WhisperConfig, path: Optional[str] = None) -> None:
     p = path or CONFIG_FILE
     d = asdict(cfg)
     d.pop("c2_password", None)
-    d.pop("c2_salt_hex", None)
     os.makedirs(os.path.dirname(p), exist_ok=True)
     with open(p, "w") as f:
         json.dump(d, f, indent=2, default=str)

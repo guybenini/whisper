@@ -1,0 +1,20 @@
+# Byte-compiled / optimized / DLL
+__pycache__/
+*.pyc
+*.pyo
+
+# Build outputs
+build/
+dist/
+*.exe
+*.spec
+
+# Config (auto-generated salt, no secrets checked in)
+whisper_config.json
+
+# Logs
+logs/
+
+# Tool caches
+.ruff_cache/
+.mypy_cache/

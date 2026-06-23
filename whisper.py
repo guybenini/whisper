@@ -6,11 +6,11 @@ import threading, os, sys, json, base64, webbrowser, subprocess, time, datetime,
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from server import MainApp as ServerApp, setup_styles, DARK_BG, DARKER_BG, DARKEST_BG, ACCENT, TEXT_FG, TEXT_SEC, GREEN, FONT, FONT_BOLD, FONT_SM
 from builder import BuilderApp
-from whisper_logging import setup_logger
+from whisper_logging import setup_logger, TkinterHandler
 import binder, web_server
 
 log = logging.getLogger("whisper.unified")
-VERSION = "3.0"
+VERSION = "3.1.0"
 
 class UnifiedApp:
     def __init__(self):
@@ -28,6 +28,7 @@ class UnifiedApp:
         self._build_builder_tab()
         self._build_web_tab()
         self._build_binder_tab()
+        self._build_logs_tab()
 
         self._web_server = None
         self._web_thread = None
@@ -210,6 +211,31 @@ class UnifiedApp:
             except Exception as e:
                 self.root.after(0, self._bind_log_msg, f"[!] Bind failed: {e}")
         threading.Thread(target=task, daemon=True).start()
+
+    def _build_logs_tab(self):
+        f = self._make_tab(" Logs ")
+        top = tk.Frame(f, bg=DARK_BG)
+        top.pack(fill="x", padx=10, pady=3)
+        tk.Label(top, text="Application Logs", bg=DARK_BG, fg=ACCENT, font=("Consolas", 14, "bold")).pack(side="left")
+
+        self._log_text = scrolledtext.ScrolledText(f, bg=DARKEST_BG, fg=GREEN, font=FONT_SM,
+                                                    relief="flat", state="disabled")
+        self._log_text.pack(fill="both", expand=True, padx=10, pady=2)
+
+        handler = TkinterHandler(lambda: self._log_text)
+        handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+                                               datefmt="%Y-%m-%d %H:%M:%S"))
+        handler.setLevel(logging.DEBUG)
+        logging.getLogger().addHandler(handler)
+
+        bf = tk.Frame(f, bg=DARK_BG)
+        bf.pack(fill="x", padx=10, pady=2)
+        ttk.Button(bf, text="Clear", command=self._clear_logs).pack(side="left")
+
+    def _clear_logs(self):
+        self._log_text.configure(state="normal")
+        self._log_text.delete("1.0", "end")
+        self._log_text.configure(state="disabled")
 
     def run(self):
         self.root.mainloop()
