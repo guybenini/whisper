@@ -18,8 +18,8 @@ jobs:
         run: pip install pyinstaller pillow mss cryptography opencv-python-headless
       - name: Clear cache
         run: Get-ChildItem -Recurse -Directory -Filter __pycache__ | Remove-Item -Recurse -Force
-      - name: Run tests
-        run: python test_all.py
+      - name: Run unit tests
+        run: python test_units.py
 
   test-linux:
     runs-on: ubuntu-latest
@@ -28,18 +28,21 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Run stub generation test
+      - name: Run unit tests
+        run: python test_units.py
+      - name: Check all imports
         run: |
           python -c "
+          from whisper_crypto import derive_key, encrypt_bytes, decrypt_bytes, encrypt_dict, decrypt_dict
+          from whisper_config import WhisperConfig, load_config
+          from whisper_protocol import encode_frame, decode_frame_header, validate_message
+          from whisper_logging import setup_logger, TkinterHandler
+          from server import C2Engine, MainApp
+          from builder import BuilderApp
           from plugins import PLUGIN_REGISTRY
           from stub_generator import generate_stub
-          stub = generate_stub(sorted(PLUGIN_REGISTRY.keys()), '127.0.0.1', 4443, 'test', 10)
-          print(f'Stub generated: {len(stub)} bytes with {len(PLUGIN_REGISTRY)} plugins')
-          compile(stub, '<test>', 'exec')
-          print('Syntax OK')
+          print('All imports OK')
           "
-      - name: Check imports
-        run: python -c "import server; print('server imports OK')"
 
   lint:
     runs-on: ubuntu-latest

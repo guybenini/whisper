@@ -4,7 +4,9 @@ import sys, os, time, threading, json, subprocess, base64, struct, hashlib, hmac
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 os.environ["PYTHONPATH"] = os.path.dirname(os.path.abspath(__file__))
 
-from server import C2Engine, derive_key, encrypt_bytes, decrypt_bytes
+from server import C2Engine
+from whisper_crypto import derive_key, encrypt_bytes, decrypt_bytes, generate_salt
+from whisper_config import WhisperConfig
 from stub_generator import generate_stub
 from plugins import PLUGIN_REGISTRY
 
@@ -33,6 +35,8 @@ def skip(name, reason=""):
     print(f"  [{SKIP}] {name}" + (f" ({reason})" if reason else ""))
     results["skip"] += 1
 
+_test_salt = generate_salt()
+
 def make_agent(conn_key):
     """Create a simple test agent that connects and responds to commands."""
     host, port = conn_key
@@ -40,7 +44,7 @@ def make_agent(conn_key):
     sock.settimeout(15)
     sock.connect((host, port))
 
-    key = derive_key("whisper_secret_key")
+    key = derive_key("whisper_secret_key", _test_salt)
     def enc(d):
         return base64.b64encode(encrypt_bytes(json.dumps(d).encode(), key))
     def dec(data):
@@ -69,7 +73,11 @@ def run_test():
     # 1. Start C2 server
     print("1. Starting C2 server...")
     port = 4447
-    engine = C2Engine(password="whisper_secret_key", port=port)
+    cfg = WhisperConfig()
+    cfg.c2_port = port
+    cfg.c2_password = "whisper_secret_key"
+    cfg.c2_salt_hex = _test_salt.hex()
+    engine = C2Engine(config=cfg)
     engine.set_callback("status", lambda m: None)
     server_thread = threading.Thread(target=engine.start, daemon=True)
     server_thread.start()
