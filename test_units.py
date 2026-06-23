@@ -147,11 +147,11 @@ with tempfile.TemporaryDirectory() as _td:
     save_config(_cfg, _p)
     test("save_config writes file", lambda: os.path.exists(_p))
     test("save_config does not write password to file", lambda: "c2_password" not in open(_p).read())
-    test("save_config does not write salt to file", lambda: "c2_salt_hex" not in open(_p).read())
+    test("save_config persists salt to file", lambda: "c2_salt_hex" in open(_p).read())
     _loaded = load_config(_p)
     test("load_config restores fields", lambda: _loaded.c2_port == _cfg.c2_port)
     test("load_config does not restore password", lambda: _loaded.c2_password == "")
-    test("load_config auto-generates salt on load", lambda: len(_loaded.c2_salt_hex) == 32)
+    test("load_config restores salt from file", lambda: _loaded.c2_salt_hex == _cfg.c2_salt_hex)
 
 # --- Plugin Validation Tests ---
 print("\n7. Plugin Validation...")

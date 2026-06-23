@@ -64,8 +64,9 @@ class C2Engine:
         self.client_id = 0
         self.callbacks: dict[str, callable] = {}
 
+        password = self.config.c2_password or "whisper_secret_key"
         salt = bytes.fromhex(self.config.c2_salt_hex) if self.config.c2_salt_hex else generate_salt()
-        self._enc_key = derive_key(self.config.c2_password, salt,
+        self._enc_key = derive_key(password, salt,
                                    self.config.key_length, self.config.pbkdf2_iterations)
         log.info("C2Engine initialized (key derived)")
 
@@ -736,10 +737,6 @@ class MainApp:
         self.client_windows: dict[int, ClientApp] = {}
         self._build_ui()
 
-        tk_handler = TkinterHandler(lambda: self.event_log if hasattr(self, 'event_log') else None)
-        tk_handler.setFormatter(logging.Formatter("[%(asctime)s] %(message)s", datefmt="%H:%M:%S"))
-        logging.getLogger("whisper").addHandler(tk_handler)
-
     def _build_ui(self) -> None:
         top = tk.Frame(self.root, bg=DARKEST_BG, height=42)
         top.pack(fill="x")
@@ -758,34 +755,21 @@ class MainApp:
         main = tk.Frame(self.root, bg=DARK_BG)
         main.pack(fill="both", expand=True)
 
-        left = tk.Frame(main, bg=DARK_BG, width=280)
-        left.pack(side="left", fill="y")
-        left.pack_propagate(False)
-        tk.Label(left, text="CLIENTS", bg=DARK_BG, fg=ACCENT, font=FONT_BOLD).pack(anchor="w", padx=6, pady=(4,0))
-        self.client_tree = ttk.Treeview(left, columns=("id", "ip", "hostname", "os", "user"), show="headings", height=15)
+        main.pack_propagate(False)
+        self.client_tree = ttk.Treeview(main, columns=("id", "ip", "hostname", "os", "user"), show="headings")
         self.client_tree.heading("id", text="ID"); self.client_tree.heading("ip", text="IP")
         self.client_tree.heading("hostname", text="Hostname"); self.client_tree.heading("os", text="OS"); self.client_tree.heading("user", text="User")
-        self.client_tree.column("id", width=30, minwidth=25); self.client_tree.column("ip", width=100, minwidth=80)
-        self.client_tree.column("hostname", width=0, stretch=False)
-        self.client_tree.column("os", width=0, stretch=False); self.client_tree.column("user", width=0, stretch=False)
+        self.client_tree.column("id", width=40, minwidth=25); self.client_tree.column("ip", width=130, minwidth=80)
+        self.client_tree.column("hostname", width=150); self.client_tree.column("os", width=160)
+        self.client_tree.column("user", width=100)
         self.client_tree.pack(fill="both", expand=True, padx=6, pady=2)
         self.client_tree.bind("<Double-1>", self._open_client)
         self.client_tree.bind("<Button-3>", self._client_menu)
-        btn_f = tk.Frame(left, bg=DARK_BG)
+        btn_f = tk.Frame(main, bg=DARK_BG)
         btn_f.pack(fill="x", padx=6, pady=(0,4))
         ttk.Button(btn_f, text="Open", command=lambda: self._open_client()).pack(side="left", padx=1)
         ttk.Button(btn_f, text="Disconnect", command=self._disconnect_client).pack(side="left", padx=1)
-
-        sep = tk.Frame(main, bg=DARKER_BG, width=1)
-        sep.pack(side="left", fill="y")
-
-        right = tk.Frame(main, bg=DARK_BG)
-        right.pack(side="left", fill="both", expand=True)
-        self.event_log = scrolledtext.ScrolledText(right, bg=DARKEST_BG, fg=TEXT_FG, insertbackground=TEXT_FG,
-            font=FONT_SM, wrap="word", relief="flat", borderwidth=0, state="disabled")
-        self.event_log.pack(fill="both", expand=True, padx=6, pady=4)
-        self.event_log.tag_config("green", foreground=GREEN)
-        self.event_log.tag_config("red", foreground=ACCENT)
+        ttk.Button(btn_f, text="Clear All", command=self._clear_all).pack(side="left", padx=1)
 
     def _status(self, msg: str) -> None:
         log.info(msg)
@@ -905,6 +889,18 @@ class MainApp:
             log.debug("Error disconnecting [%d]: %s", cid, e)
         self.engine._cleanup(cid)
         log.info("Client [%d] disconnected by user", cid)
+
+    def _clear_all(self) -> None:
+        for cid in list(self.engine.clients.keys()):
+            try:
+                client = self.engine.clients[cid]
+                client["conn"].settimeout(3)
+                raw = client.get("raw", False)
+                self.engine.send(client["conn"], {"type": "exit"}, raw=raw)
+            except Exception as e:
+                log.debug("Error disconnecting [%d]: %s", cid, e)
+            self.engine._cleanup(cid)
+        log.info("All clients cleared")
 
     def _open_client(self, event: tk.Event | None = None) -> None:
         cid = self._selected_cid()

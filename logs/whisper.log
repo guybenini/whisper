@@ -18,3 +18,312 @@
 2026-06-23 16:00:08 [DEBUG] whisper.plugins: Loaded plugin: vuln_scan
 2026-06-23 16:00:08 [DEBUG] whisper.plugins: Loaded plugin: webcam
 2026-06-23 16:00:08 [DEBUG] whisper.plugins: Loaded plugin: wifi_harvest
+2026-06-23 16:18:37 [DEBUG] whisper.plugins: Loaded plugin: anti_vm
+2026-06-23 16:18:37 [DEBUG] whisper.plugins: Loaded plugin: browser_harvest
+2026-06-23 16:18:37 [DEBUG] whisper.plugins: Loaded plugin: clipboard
+2026-06-23 16:18:37 [DEBUG] whisper.plugins: Loaded plugin: crypto_clipper
+2026-06-23 16:18:37 [DEBUG] whisper.plugins: Loaded plugin: crypto_steal
+2026-06-23 16:18:37 [DEBUG] whisper.plugins: Loaded plugin: dns_hijack
+2026-06-23 16:18:37 [DEBUG] whisper.plugins: Loaded plugin: file_hunter
+2026-06-23 16:18:37 [DEBUG] whisper.plugins: Loaded plugin: file_manager
+2026-06-23 16:18:37 [DEBUG] whisper.plugins: Loaded plugin: hvnc
+2026-06-23 16:18:37 [DEBUG] whisper.plugins: Loaded plugin: keylogger
+2026-06-23 16:18:37 [DEBUG] whisper.plugins: Loaded plugin: lateral
+2026-06-23 16:18:37 [DEBUG] whisper.plugins: Loaded plugin: persistence
+2026-06-23 16:18:37 [DEBUG] whisper.plugins: Loaded plugin: process_inject
+2026-06-23 16:18:37 [DEBUG] whisper.plugins: Loaded plugin: ransomware
+2026-06-23 16:18:37 [DEBUG] whisper.plugins: Loaded plugin: screenshot
+2026-06-23 16:18:37 [DEBUG] whisper.plugins: Loaded plugin: shell
+2026-06-23 16:18:37 [DEBUG] whisper.plugins: Loaded plugin: uac_bypass
+2026-06-23 16:18:37 [DEBUG] whisper.plugins: Loaded plugin: vuln_scan
+2026-06-23 16:18:37 [DEBUG] whisper.plugins: Loaded plugin: webcam
+2026-06-23 16:18:37 [DEBUG] whisper.plugins: Loaded plugin: wifi_harvest
+2026-06-23 16:18:48 [DEBUG] whisper.plugins: Loaded plugin: anti_vm
+2026-06-23 16:18:48 [DEBUG] whisper.plugins: Loaded plugin: browser_harvest
+2026-06-23 16:18:48 [DEBUG] whisper.plugins: Loaded plugin: clipboard
+2026-06-23 16:18:48 [DEBUG] whisper.plugins: Loaded plugin: crypto_clipper
+2026-06-23 16:18:48 [DEBUG] whisper.plugins: Loaded plugin: crypto_steal
+2026-06-23 16:18:48 [DEBUG] whisper.plugins: Loaded plugin: dns_hijack
+2026-06-23 16:18:48 [DEBUG] whisper.plugins: Loaded plugin: file_hunter
+2026-06-23 16:18:48 [DEBUG] whisper.plugins: Loaded plugin: file_manager
+2026-06-23 16:18:48 [DEBUG] whisper.plugins: Loaded plugin: hvnc
+2026-06-23 16:18:48 [DEBUG] whisper.plugins: Loaded plugin: keylogger
+2026-06-23 16:18:48 [DEBUG] whisper.plugins: Loaded plugin: lateral
+2026-06-23 16:18:48 [DEBUG] whisper.plugins: Loaded plugin: persistence
+2026-06-23 16:18:48 [DEBUG] whisper.plugins: Loaded plugin: process_inject
+2026-06-23 16:18:48 [DEBUG] whisper.plugins: Loaded plugin: ransomware
+2026-06-23 16:18:48 [DEBUG] whisper.plugins: Loaded plugin: screenshot
+2026-06-23 16:18:48 [DEBUG] whisper.plugins: Loaded plugin: shell
+2026-06-23 16:18:48 [DEBUG] whisper.plugins: Loaded plugin: uac_bypass
+2026-06-23 16:18:48 [DEBUG] whisper.plugins: Loaded plugin: vuln_scan
+2026-06-23 16:18:48 [DEBUG] whisper.plugins: Loaded plugin: webcam
+2026-06-23 16:18:48 [DEBUG] whisper.plugins: Loaded plugin: wifi_harvest
+2026-06-23 20:37:25 [DEBUG] whisper.plugins: Loaded plugin: anti_vm
+2026-06-23 20:37:25 [DEBUG] whisper.plugins: Loaded plugin: browser_harvest
+2026-06-23 20:37:25 [DEBUG] whisper.plugins: Loaded plugin: clipboard
+2026-06-23 20:37:25 [DEBUG] whisper.plugins: Loaded plugin: crypto_clipper
+2026-06-23 20:37:25 [DEBUG] whisper.plugins: Loaded plugin: crypto_steal
+2026-06-23 20:37:25 [DEBUG] whisper.plugins: Loaded plugin: dns_hijack
+2026-06-23 20:37:25 [DEBUG] whisper.plugins: Loaded plugin: file_hunter
+2026-06-23 20:37:25 [DEBUG] whisper.plugins: Loaded plugin: file_manager
+2026-06-23 20:37:25 [DEBUG] whisper.plugins: Loaded plugin: hvnc
+2026-06-23 20:37:25 [DEBUG] whisper.plugins: Loaded plugin: keylogger
+2026-06-23 20:37:25 [DEBUG] whisper.plugins: Loaded plugin: lateral
+2026-06-23 20:37:25 [DEBUG] whisper.plugins: Loaded plugin: persistence
+2026-06-23 20:37:25 [DEBUG] whisper.plugins: Loaded plugin: process_inject
+2026-06-23 20:37:25 [DEBUG] whisper.plugins: Loaded plugin: ransomware
+2026-06-23 20:37:25 [DEBUG] whisper.plugins: Loaded plugin: screenshot
+2026-06-23 20:37:25 [DEBUG] whisper.plugins: Loaded plugin: shell
+2026-06-23 20:37:25 [DEBUG] whisper.plugins: Loaded plugin: uac_bypass
+2026-06-23 20:37:25 [DEBUG] whisper.plugins: Loaded plugin: vuln_scan
+2026-06-23 20:37:25 [DEBUG] whisper.plugins: Loaded plugin: webcam
+2026-06-23 20:37:25 [DEBUG] whisper.plugins: Loaded plugin: wifi_harvest
+2026-06-23 20:37:28 [INFO] whisper.server: C2Engine initialized (key derived)
+2026-06-23 20:37:28 [INFO] whisper.server: Starting server...
+2026-06-23 20:37:28 [INFO] whisper.server: Server listening on port 4443
+2026-06-23 20:37:28 [INFO] whisper.server: Server started on port 4443
+2026-06-23 20:38:04 [INFO] whisper.builder: [+] Generated: C:\Users\CryptofyDigital\Documents\GitHub\whisper\build\stub.py (95,585 B, 93.3 KB)
+2026-06-23 20:38:04 [INFO] whisper.builder: [*] Building EXE...
+2026-06-23 20:38:04 [INFO] whisper.builder: [*] C:\Python312\Scripts\pyinstaller.exe --windowed --noconsole --onefile --distpath C:\Users\CryptofyDigital\Documents\GitHub\whisper\build --workpath C:\Users\CryptofyDigital\Documents\GitHub\whisper\build\_pyi C:\Users\CryptofyDigital\Documents\GitHub\whisper\build\stub.py
+2026-06-23 20:38:34 [INFO] whisper.builder: [+] Built: C:\Users\CryptofyDigital\Documents\GitHub\whisper\build\stub.exe
+2026-06-23 20:40:08 [DEBUG] whisper.server: New connection from ('127.0.0.1', 56132)
+2026-06-23 20:40:09 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 56132)
+2026-06-23 20:40:20 [DEBUG] whisper.server: New connection from ('127.0.0.1', 53224)
+2026-06-23 20:40:20 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 53224)
+2026-06-23 20:40:30 [DEBUG] whisper.server: New connection from ('127.0.0.1', 53692)
+2026-06-23 20:40:31 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 53692)
+2026-06-23 20:40:41 [DEBUG] whisper.server: New connection from ('127.0.0.1', 59319)
+2026-06-23 20:40:42 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 59319)
+2026-06-23 20:40:52 [DEBUG] whisper.server: New connection from ('127.0.0.1', 59323)
+2026-06-23 20:40:53 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 59323)
+2026-06-23 20:41:04 [DEBUG] whisper.server: New connection from ('127.0.0.1', 63786)
+2026-06-23 20:41:04 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 63786)
+2026-06-23 20:41:15 [DEBUG] whisper.server: New connection from ('127.0.0.1', 56106)
+2026-06-23 20:41:16 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 56106)
+2026-06-23 20:41:26 [DEBUG] whisper.server: New connection from ('127.0.0.1', 55853)
+2026-06-23 20:41:27 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 55853)
+2026-06-23 20:41:38 [DEBUG] whisper.server: New connection from ('127.0.0.1', 56092)
+2026-06-23 20:41:38 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 56092)
+2026-06-23 20:41:48 [DEBUG] whisper.server: New connection from ('127.0.0.1', 58850)
+2026-06-23 20:41:49 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 58850)
+2026-06-23 20:42:00 [DEBUG] whisper.server: New connection from ('127.0.0.1', 64822)
+2026-06-23 20:42:02 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 64822)
+2026-06-23 20:42:12 [DEBUG] whisper.server: New connection from ('127.0.0.1', 59218)
+2026-06-23 20:42:13 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 59218)
+2026-06-23 20:42:23 [DEBUG] whisper.server: New connection from ('127.0.0.1', 56130)
+2026-06-23 20:42:24 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 56130)
+2026-06-23 20:42:34 [DEBUG] whisper.server: New connection from ('127.0.0.1', 62993)
+2026-06-23 20:42:35 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 62993)
+2026-06-23 20:42:46 [DEBUG] whisper.server: New connection from ('127.0.0.1', 57179)
+2026-06-23 20:42:47 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 57179)
+2026-06-23 20:42:57 [DEBUG] whisper.server: New connection from ('127.0.0.1', 61107)
+2026-06-23 20:42:59 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 61107)
+2026-06-23 20:43:09 [DEBUG] whisper.server: New connection from ('127.0.0.1', 54681)
+2026-06-23 20:43:10 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 54681)
+2026-06-23 20:43:21 [DEBUG] whisper.server: New connection from ('127.0.0.1', 63502)
+2026-06-23 20:43:22 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 63502)
+2026-06-23 20:43:32 [DEBUG] whisper.server: New connection from ('127.0.0.1', 57216)
+2026-06-23 20:43:33 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 57216)
+2026-06-23 20:43:43 [DEBUG] whisper.server: New connection from ('127.0.0.1', 51057)
+2026-06-23 20:43:45 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 51057)
+2026-06-23 20:43:56 [DEBUG] whisper.server: New connection from ('127.0.0.1', 51141)
+2026-06-23 20:43:56 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 51141)
+2026-06-23 20:44:07 [DEBUG] whisper.server: New connection from ('127.0.0.1', 58955)
+2026-06-23 20:44:08 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 58955)
+2026-06-23 20:44:11 [INFO] whisper.crypto: AES-GCM available (cryptography >= 3.0)
+2026-06-23 20:44:11 [DEBUG] whisper.plugins: Loaded plugin: anti_vm
+2026-06-23 20:44:11 [DEBUG] whisper.plugins: Loaded plugin: browser_harvest
+2026-06-23 20:44:11 [DEBUG] whisper.plugins: Loaded plugin: clipboard
+2026-06-23 20:44:11 [DEBUG] whisper.plugins: Loaded plugin: crypto_clipper
+2026-06-23 20:44:11 [DEBUG] whisper.plugins: Loaded plugin: crypto_steal
+2026-06-23 20:44:11 [DEBUG] whisper.plugins: Loaded plugin: dns_hijack
+2026-06-23 20:44:11 [DEBUG] whisper.plugins: Loaded plugin: file_hunter
+2026-06-23 20:44:11 [DEBUG] whisper.plugins: Loaded plugin: file_manager
+2026-06-23 20:44:11 [DEBUG] whisper.plugins: Loaded plugin: hvnc
+2026-06-23 20:44:11 [DEBUG] whisper.plugins: Loaded plugin: keylogger
+2026-06-23 20:44:11 [DEBUG] whisper.plugins: Loaded plugin: lateral
+2026-06-23 20:44:11 [DEBUG] whisper.plugins: Loaded plugin: persistence
+2026-06-23 20:44:11 [DEBUG] whisper.plugins: Loaded plugin: process_inject
+2026-06-23 20:44:11 [DEBUG] whisper.plugins: Loaded plugin: ransomware
+2026-06-23 20:44:11 [DEBUG] whisper.plugins: Loaded plugin: screenshot
+2026-06-23 20:44:11 [DEBUG] whisper.plugins: Loaded plugin: shell
+2026-06-23 20:44:11 [DEBUG] whisper.plugins: Loaded plugin: uac_bypass
+2026-06-23 20:44:11 [DEBUG] whisper.plugins: Loaded plugin: vuln_scan
+2026-06-23 20:44:11 [DEBUG] whisper.plugins: Loaded plugin: webcam
+2026-06-23 20:44:11 [DEBUG] whisper.plugins: Loaded plugin: wifi_harvest
+2026-06-23 20:44:19 [DEBUG] whisper.server: New connection from ('127.0.0.1', 58030)
+2026-06-23 20:44:22 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 58030)
+2026-06-23 20:44:32 [DEBUG] whisper.server: New connection from ('127.0.0.1', 63263)
+2026-06-23 20:44:35 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 63263)
+2026-06-23 20:44:45 [DEBUG] whisper.server: New connection from ('127.0.0.1', 52811)
+2026-06-23 20:44:47 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 52811)
+2026-06-23 20:44:58 [DEBUG] whisper.server: New connection from ('127.0.0.1', 49753)
+2026-06-23 20:44:59 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 49753)
+2026-06-23 20:45:10 [DEBUG] whisper.server: New connection from ('127.0.0.1', 50126)
+2026-06-23 20:45:13 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 50126)
+2026-06-23 20:45:23 [DEBUG] whisper.server: New connection from ('127.0.0.1', 56559)
+2026-06-23 20:45:26 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 56559)
+2026-06-23 20:45:37 [DEBUG] whisper.server: New connection from ('127.0.0.1', 61604)
+2026-06-23 20:45:38 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 61604)
+2026-06-23 20:45:49 [DEBUG] whisper.server: New connection from ('127.0.0.1', 52332)
+2026-06-23 20:45:50 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 52332)
+2026-06-23 20:45:58 [DEBUG] whisper.plugins: Loaded plugin: anti_vm
+2026-06-23 20:45:58 [DEBUG] whisper.plugins: Loaded plugin: browser_harvest
+2026-06-23 20:45:58 [DEBUG] whisper.plugins: Loaded plugin: clipboard
+2026-06-23 20:45:58 [DEBUG] whisper.plugins: Loaded plugin: crypto_clipper
+2026-06-23 20:45:58 [DEBUG] whisper.plugins: Loaded plugin: crypto_steal
+2026-06-23 20:45:58 [DEBUG] whisper.plugins: Loaded plugin: dns_hijack
+2026-06-23 20:45:58 [DEBUG] whisper.plugins: Loaded plugin: file_hunter
+2026-06-23 20:45:58 [DEBUG] whisper.plugins: Loaded plugin: file_manager
+2026-06-23 20:45:58 [DEBUG] whisper.plugins: Loaded plugin: hvnc
+2026-06-23 20:45:58 [DEBUG] whisper.plugins: Loaded plugin: keylogger
+2026-06-23 20:45:58 [DEBUG] whisper.plugins: Loaded plugin: lateral
+2026-06-23 20:45:58 [DEBUG] whisper.plugins: Loaded plugin: persistence
+2026-06-23 20:45:58 [DEBUG] whisper.plugins: Loaded plugin: process_inject
+2026-06-23 20:45:58 [DEBUG] whisper.plugins: Loaded plugin: ransomware
+2026-06-23 20:45:58 [DEBUG] whisper.plugins: Loaded plugin: screenshot
+2026-06-23 20:45:58 [DEBUG] whisper.plugins: Loaded plugin: shell
+2026-06-23 20:45:58 [DEBUG] whisper.plugins: Loaded plugin: uac_bypass
+2026-06-23 20:45:58 [DEBUG] whisper.plugins: Loaded plugin: vuln_scan
+2026-06-23 20:45:58 [DEBUG] whisper.plugins: Loaded plugin: webcam
+2026-06-23 20:45:58 [DEBUG] whisper.plugins: Loaded plugin: wifi_harvest
+2026-06-23 20:45:59 [INFO] whisper.server: C2Engine initialized (key derived)
+2026-06-23 20:46:00 [INFO] whisper.server: Starting server...
+2026-06-23 20:46:00 [INFO] whisper.server: Server listening on port 4443
+2026-06-23 20:46:00 [INFO] whisper.server: Server started on port 4443
+2026-06-23 20:46:00 [DEBUG] whisper.server: New connection from ('127.0.0.1', 59789)
+2026-06-23 20:46:01 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 59789)
+2026-06-23 20:46:12 [DEBUG] whisper.server: New connection from ('127.0.0.1', 59335)
+2026-06-23 20:46:13 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 59335)
+2026-06-23 20:46:24 [DEBUG] whisper.server: New connection from ('127.0.0.1', 57801)
+2026-06-23 20:46:25 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 57801)
+2026-06-23 20:46:32 [INFO] whisper.builder: [+] Generated: C:\Users\CryptofyDigital\Documents\GitHub\whisper\build\stub.py (95,585 B, 93.3 KB)
+2026-06-23 20:46:32 [INFO] whisper.builder: [*] Building EXE...
+2026-06-23 20:46:32 [INFO] whisper.builder: [*] C:\Python312\Scripts\pyinstaller.exe --windowed --noconsole --onefile --distpath C:\Users\CryptofyDigital\Documents\GitHub\whisper\build --workpath C:\Users\CryptofyDigital\Documents\GitHub\whisper\build\_pyi C:\Users\CryptofyDigital\Documents\GitHub\whisper\build\stub.py
+2026-06-23 20:46:35 [DEBUG] whisper.server: New connection from ('127.0.0.1', 60052)
+2026-06-23 20:46:36 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 60052)
+2026-06-23 20:46:46 [DEBUG] whisper.server: New connection from ('127.0.0.1', 54209)
+2026-06-23 20:46:48 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 54209)
+2026-06-23 20:46:59 [DEBUG] whisper.server: New connection from ('127.0.0.1', 65288)
+2026-06-23 20:47:02 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 65288)
+2026-06-23 20:47:07 [INFO] whisper.builder:   ERR: self.assemble()
+2026-06-23 20:47:07 [INFO] whisper.builder:   ERR: File "C:\Python312\Lib\site-packages\PyInstaller\building\api.py", line 752, in assemble
+2026-06-23 20:47:07 [INFO] whisper.builder:   ERR: os.remove(self.name)
+2026-06-23 20:47:07 [INFO] whisper.builder:   ERR: PermissionError: [WinError 5] Access is denied: 'C:\\Users\\CryptofyDigital\\Documents\\GitHub\\whisper\\build\\stub.exe'
+2026-06-23 20:47:12 [DEBUG] whisper.server: New connection from ('127.0.0.1', 59209)
+2026-06-23 20:47:14 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 59209)
+2026-06-23 20:47:24 [DEBUG] whisper.server: New connection from ('127.0.0.1', 59212)
+2026-06-23 20:47:26 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 59212)
+2026-06-23 20:47:37 [DEBUG] whisper.server: New connection from ('127.0.0.1', 59215)
+2026-06-23 20:47:38 [DEBUG] whisper.server: New connection from ('127.0.0.1', 59216)
+2026-06-23 20:47:39 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 59215)
+2026-06-23 20:47:42 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 59216)
+2026-06-23 20:47:50 [DEBUG] whisper.server: New connection from ('127.0.0.1', 59246)
+2026-06-23 20:47:52 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 59246)
+2026-06-23 20:47:53 [DEBUG] whisper.server: New connection from ('127.0.0.1', 57295)
+2026-06-23 20:47:56 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 57295)
+2026-06-23 20:48:02 [DEBUG] whisper.server: New connection from ('127.0.0.1', 57298)
+2026-06-23 20:48:03 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 57298)
+2026-06-23 20:48:06 [DEBUG] whisper.server: New connection from ('127.0.0.1', 57299)
+2026-06-23 20:48:09 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 57299)
+2026-06-23 20:48:14 [DEBUG] whisper.server: New connection from ('127.0.0.1', 57304)
+2026-06-23 20:48:16 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 57304)
+2026-06-23 20:48:19 [DEBUG] whisper.server: New connection from ('127.0.0.1', 57306)
+2026-06-23 20:48:21 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 57306)
+2026-06-23 20:48:27 [DEBUG] whisper.server: New connection from ('127.0.0.1', 49563)
+2026-06-23 20:48:28 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 49563)
+2026-06-23 20:48:32 [DEBUG] whisper.server: New connection from ('127.0.0.1', 49566)
+2026-06-23 20:48:33 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 49566)
+2026-06-23 20:48:39 [DEBUG] whisper.server: New connection from ('127.0.0.1', 59382)
+2026-06-23 20:48:40 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 59382)
+2026-06-23 20:48:44 [DEBUG] whisper.server: New connection from ('127.0.0.1', 59384)
+2026-06-23 20:48:46 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 59384)
+2026-06-23 20:48:50 [DEBUG] whisper.server: New connection from ('127.0.0.1', 54499)
+2026-06-23 20:48:52 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 54499)
+2026-06-23 20:48:56 [DEBUG] whisper.server: New connection from ('127.0.0.1', 50150)
+2026-06-23 20:48:58 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 50150)
+2026-06-23 20:49:02 [DEBUG] whisper.server: New connection from ('127.0.0.1', 61001)
+2026-06-23 20:49:04 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 61001)
+2026-06-23 20:49:08 [DEBUG] whisper.server: New connection from ('127.0.0.1', 61383)
+2026-06-23 20:49:10 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 61383)
+2026-06-23 20:49:15 [DEBUG] whisper.server: New connection from ('127.0.0.1', 61387)
+2026-06-23 20:49:17 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 61387)
+2026-06-23 20:49:21 [DEBUG] whisper.server: New connection from ('127.0.0.1', 57845)
+2026-06-23 20:49:24 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 57845)
+2026-06-23 20:49:27 [DEBUG] whisper.server: New connection from ('127.0.0.1', 57847)
+2026-06-23 20:49:28 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 57847)
+2026-06-23 20:49:34 [DEBUG] whisper.server: New connection from ('127.0.0.1', 56507)
+2026-06-23 20:49:36 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 56507)
+2026-06-23 20:49:38 [DEBUG] whisper.server: New connection from ('127.0.0.1', 56509)
+2026-06-23 20:49:40 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 56509)
+2026-06-23 20:49:47 [DEBUG] whisper.server: New connection from ('127.0.0.1', 62381)
+2026-06-23 20:49:50 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 62381)
+2026-06-23 20:49:50 [DEBUG] whisper.server: New connection from ('127.0.0.1', 62382)
+2026-06-23 20:49:53 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 62382)
+2026-06-23 20:50:01 [DEBUG] whisper.server: New connection from ('127.0.0.1', 49235)
+2026-06-23 20:50:04 [DEBUG] whisper.server: New connection from ('127.0.0.1', 49237)
+2026-06-23 20:50:07 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 49235)
+2026-06-23 20:50:08 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 49237)
+2026-06-23 20:50:17 [DEBUG] whisper.server: New connection from ('127.0.0.1', 49851)
+2026-06-23 20:50:18 [DEBUG] whisper.server: New connection from ('127.0.0.1', 49852)
+2026-06-23 20:50:19 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 49851)
+2026-06-23 20:50:20 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 49852)
+2026-06-23 20:50:30 [DEBUG] whisper.server: New connection from ('127.0.0.1', 59538)
+2026-06-23 20:50:31 [DEBUG] whisper.server: New connection from ('127.0.0.1', 59539)
+2026-06-23 20:50:31 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 59538)
+2026-06-23 20:50:32 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 59539)
+2026-06-23 20:50:42 [DEBUG] whisper.server: New connection from ('127.0.0.1', 51564)
+2026-06-23 20:50:43 [DEBUG] whisper.server: New connection from ('127.0.0.1', 51565)
+2026-06-23 20:50:43 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 51564)
+2026-06-23 20:50:44 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 51565)
+2026-06-23 20:50:54 [DEBUG] whisper.server: New connection from ('127.0.0.1', 58391)
+2026-06-23 20:50:54 [DEBUG] whisper.server: New connection from ('127.0.0.1', 58392)
+2026-06-23 20:50:56 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 58391)
+2026-06-23 20:50:56 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 58392)
+2026-06-23 20:51:07 [DEBUG] whisper.server: New connection from ('127.0.0.1', 52492)
+2026-06-23 20:51:07 [DEBUG] whisper.server: New connection from ('127.0.0.1', 52493)
+2026-06-23 20:51:09 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 52493)
+2026-06-23 20:51:09 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 52492)
+2026-06-23 20:51:19 [DEBUG] whisper.server: New connection from ('127.0.0.1', 63360)
+2026-06-23 20:51:20 [DEBUG] whisper.server: New connection from ('127.0.0.1', 63361)
+2026-06-23 20:51:23 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 63360)
+2026-06-23 20:51:23 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 63361)
+2026-06-23 20:51:33 [DEBUG] whisper.server: New connection from ('127.0.0.1', 56646)
+2026-06-23 20:51:34 [DEBUG] whisper.server: New connection from ('127.0.0.1', 56647)
+2026-06-23 20:51:36 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 56646)
+2026-06-23 20:51:36 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 56647)
+2026-06-23 20:51:46 [DEBUG] whisper.server: New connection from ('127.0.0.1', 60100)
+2026-06-23 20:51:47 [DEBUG] whisper.server: New connection from ('127.0.0.1', 60101)
+2026-06-23 20:51:49 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 60100)
+2026-06-23 20:51:49 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 60101)
+2026-06-23 20:52:00 [DEBUG] whisper.server: New connection from ('127.0.0.1', 64438)
+2026-06-23 20:52:00 [DEBUG] whisper.server: New connection from ('127.0.0.1', 64440)
+2026-06-23 20:52:01 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 64438)
+2026-06-23 20:52:02 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 64440)
+2026-06-23 20:52:12 [DEBUG] whisper.server: New connection from ('127.0.0.1', 61046)
+2026-06-23 20:52:12 [DEBUG] whisper.server: New connection from ('127.0.0.1', 61047)
+2026-06-23 20:52:14 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 61046)
+2026-06-23 20:52:14 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 61047)
+2026-06-23 20:52:25 [DEBUG] whisper.server: New connection from ('127.0.0.1', 64072)
+2026-06-23 20:52:25 [DEBUG] whisper.server: New connection from ('127.0.0.1', 64073)
+2026-06-23 20:52:27 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 64072)
+2026-06-23 20:52:27 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 64073)
+2026-06-23 20:52:37 [DEBUG] whisper.server: New connection from ('127.0.0.1', 49402)
+2026-06-23 20:52:38 [DEBUG] whisper.server: New connection from ('127.0.0.1', 49403)
+2026-06-23 20:52:39 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 49402)
+2026-06-23 20:52:41 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 49403)
+2026-06-23 20:52:50 [DEBUG] whisper.server: New connection from ('127.0.0.1', 60423)
+2026-06-23 20:52:51 [DEBUG] whisper.server: New connection from ('127.0.0.1', 60424)
+2026-06-23 20:52:51 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 60423)
+2026-06-23 20:52:52 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 60424)
+2026-06-23 20:53:01 [DEBUG] whisper.server: New connection from ('127.0.0.1', 61525)
+2026-06-23 20:53:03 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 61525)
+2026-06-23 20:53:03 [DEBUG] whisper.server: New connection from ('127.0.0.1', 61526)
+2026-06-23 20:53:04 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 61526)
+2026-06-23 20:53:13 [DEBUG] whisper.server: New connection from ('127.0.0.1', 60116)
+2026-06-23 20:53:14 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 60116)
+2026-06-23 20:53:15 [DEBUG] whisper.server: New connection from ('127.0.0.1', 61937)
+2026-06-23 20:53:16 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 61937)
+2026-06-23 20:53:24 [DEBUG] whisper.server: New connection from ('127.0.0.1', 60287)
+2026-06-23 20:53:26 [WARNING] whisper.server: Invalid init from ('127.0.0.1', 60287)
+2026-06-23 20:53:27 [DEBUG] whisper.server: New connection from ('127.0.0.1', 51598)
